@@ -10,7 +10,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
-class ReceiveShareActivity : Activity() {
+class ReceiveIntentActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
