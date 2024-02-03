@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.compose.foundation.isSystemInDarkTheme
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -24,7 +25,10 @@ class ReceiveIntentActivity : Activity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-        if (intent?.action == Intent.ACTION_SEND && intent.type?.startsWith("audio/") == true) {
+        if (intent?.action == Intent.ACTION_SEND && intent.type?.startsWith("audio/") == true || intent?.type?.startsWith(
+                "video/"
+            ) == true
+        ) {
             // An audio file was received
             val audioUri: Uri? = intent.getParcelableExtra(Intent.EXTRA_STREAM)
 
@@ -34,7 +38,7 @@ class ReceiveIntentActivity : Activity() {
                 if (audioFile != null) {
                     // Start your FloatingService with a delay
                     Handler(Looper.getMainLooper()).postDelayed({
-                        startFloatingService("NOTE", audioFile.absolutePath)
+                        startFloatingService("START", audioFile.absolutePath)
                     }, 500)
                 }
             }
@@ -46,6 +50,7 @@ class ReceiveIntentActivity : Activity() {
 
     private fun saveToCache(uri: Uri): File? {
         try {
+            
             val inputStream: InputStream? = contentResolver.openInputStream(uri)
             val cacheDir: File? = cacheDir
 

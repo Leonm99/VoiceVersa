@@ -1,6 +1,7 @@
 package com.example.whispdroid
 
 import android.Manifest
+import android.app.UiModeManager
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -21,6 +22,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.whispdroid.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -51,6 +53,17 @@ class MainActivity : AppCompatActivity() {
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
+
+        val mode = this.getSystemService(UI_MODE_SERVICE)
+        if (mode is UiModeManager) {
+            val currentModeType = mode.nightMode
+            if (currentModeType == UiModeManager.MODE_NIGHT_YES) {
+                // System is in Night mode
+            } else if (currentModeType == UiModeManager.MODE_NIGHT_NO) {
+                // System is in Day mode
+            }
+        }
+       
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

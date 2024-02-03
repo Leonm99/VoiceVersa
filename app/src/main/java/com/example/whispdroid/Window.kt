@@ -46,7 +46,7 @@ class Window(private val context: Context) {
     private val TEXT_CHUNK_SIZE = 5
     private var continueTextAnimation: Boolean = true
     private var originalText: String = ""
-
+    
     private fun getCurrentDisplayMetrics(): DisplayMetrics {
         val dm = DisplayMetrics()
         windowManager.defaultDisplay.getMetrics(dm)
@@ -126,6 +126,7 @@ class Window(private val context: Context) {
         Log.d("Window", "Closing window")
         try {
             windowManager.removeView(rootView)
+
         } catch (e: Exception) {
             // Handle exception for production, show a warning to the user
             e.printStackTrace()

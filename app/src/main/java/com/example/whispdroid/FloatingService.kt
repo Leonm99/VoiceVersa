@@ -21,7 +21,7 @@ import kotlin.coroutines.CoroutineContext
 
 const val INTENT_COMMAND = "com.example.whispdroid.COMMAND"
 const val INTENT_COMMAND_EXIT = "EXIT"
-const val INTENT_COMMAND_SHOW = "NOTE"
+const val INTENT_COMMAND_SHOW = "START"
 
 private const val NOTIFICATION_CHANNEL_GENERAL = "quicknote_general"
 private const val CODE_FOREGROUND_SERVICE = 1
@@ -40,45 +40,52 @@ class FloatingService : Service(), CoroutineScope {
         get() = Dispatchers.Main + job
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
         showNotification()
+
+
         window = Window(this)
 
         val command = intent?.getStringExtra(INTENT_COMMAND)
         val localPath = intent?.getStringExtra("PATH")
+        if (command == INTENT_COMMAND_SHOW) {
 
-        window?.open()
+            window?.open()
 
-        launch(Dispatchers.IO) {
-            try {
-                val audioFileUri: Uri? = localPath?.let { Uri.fromFile(File(it)) }
-                val convertedUri = audioFileUri?.let {
-                    WhisperHandler().convertAudio(this@FloatingService, it, "mp3")
-                }
-
-                if (convertedUri != null) {
-                    val openAIResult = WhisperHandler().callOpenAI() ?: return@launch
-                    val whisperResult = WhisperHandler().whisper(
-                        openAIResult,
-                        convertedUri.path ?: return@launch
-                    ).text
-
-                    result = whisperResult
-
-                    launch(Dispatchers.Main) {
-                        window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
+            launch(Dispatchers.IO) {
+                try {
+                    val audioFileUri: Uri? = localPath?.let { Uri.fromFile(File(it)) }
+                    val convertedUri = audioFileUri?.let {
+                        WhisperHandler().convertAudio(this@FloatingService, it, "mp3")
                     }
 
-                } else {
-                    // Handle the conversion failure
-                }
+                    if (convertedUri != null) {
+                        val openAIResult = WhisperHandler().callOpenAI() ?: return@launch
+                        val whisperResult = WhisperHandler().whisper(
+                            openAIResult,
+                            convertedUri.path ?: return@launch
+                        ).text
 
-            } catch (e: Exception) {
-                // Handle exceptions, log, or perform any necessary cleanup
-                e.printStackTrace()
-            } finally {
-                // Clear the cache directory
-                clearCacheDirectory()
+                        result = whisperResult
+
+                        launch(Dispatchers.Main) {
+                            window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
+                        }
+
+                    } else {
+                        // Handle the conversion failure
+                    }
+
+                } catch (e: Exception) {
+                    // Handle exceptions, log, or perform any necessary cleanup
+                    e.printStackTrace()
+                } finally {
+                    // Clear the cache directory
+                    clearCacheDirectory()
+                }
             }
+
+
         }
 
         // Exit the service if we receive the EXIT command.
@@ -106,17 +113,11 @@ class FloatingService : Service(), CoroutineScope {
             putExtra(INTENT_COMMAND, INTENT_COMMAND_EXIT)
         }
 
-        val noteIntent = Intent(this, FloatingService::class.java).apply {
-            putExtra(INTENT_COMMAND, INTENT_COMMAND_SHOW)
-        }
-
         val exitPendingIntent = PendingIntent.getService(
             this, CODE_EXIT_INTENT, exitIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notePendingIntent = PendingIntent.getService(
-            this, CODE_NOTE_INTENT, noteIntent, PendingIntent.FLAG_IMMUTABLE
-        )
+
 
         try {
             with(
@@ -145,13 +146,12 @@ class FloatingService : Service(), CoroutineScope {
         ) {
             setTicker(null)
             setContentTitle(getString(R.string.app_name))
-            setContentText("Tap me!")
+            setContentText("Whispdroid is running")
             setAutoCancel(false)
             setOngoing(true)
             setWhen(System.currentTimeMillis())
             setSmallIcon(R.drawable.icon3)
             priority = NotificationManager.IMPORTANCE_DEFAULT
-            setContentIntent(notePendingIntent)
             addAction(
                 NotificationCompat.Action(
                     0,
