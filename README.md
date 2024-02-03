@@ -1,9 +1,10 @@
 
-![Logo](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/th5xamgrr6se0x5ro4g6.png)
+
 
 # WhispDroid
+![Logo](https://github.com/Leonm99/WhispDroid/blob/master/app/src/main/res/drawable/icon_round.png?raw=true)
 
-Android Transcription App
+Android Transcription App  
 
 The Main focus is to Transcribe voice messages (or any other audio/video file) when you dont want/cant play the audio, for example when youre at work or in public transport.
 
