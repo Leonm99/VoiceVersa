@@ -47,6 +47,7 @@ class WhisperHandler {
 
             // FFmpeg command for audio conversion
             val command = arrayOf(
+                "-y", // This option makes FFmpeg overwrite the output file
                 "-i", inputUri.path,
                 "-c:a", outputFormat, // You can change this to the desired codec
                 outputPath

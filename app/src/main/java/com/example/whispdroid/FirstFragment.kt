@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
 import android.widget.EditText
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -27,9 +26,6 @@ import java.io.IOException
 class FirstFragment : Fragment() {
 
     private var _binding: FragmentFirstBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
     private var localPath: String? = null
     private val whisperHandler = WhisperHandler()
@@ -38,31 +34,32 @@ class FirstFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupClickListeners()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    private fun setupClickListeners() {
         binding.buttonStartTranscription.setOnClickListener {
             lifecycleScope.launch {
                 try {
-                    showLoading(true) // Show loading indicator
-
-                    val result =
-                        whisperHandler.whisper(whisperHandler.callOpenAI()!!, localPath!!).text
-
-                    withContext(Dispatchers.Main) {
-                        binding.textOutput.text = result.toString()
-                    }
+                    showLoading(true)
+                    val result = performWhisperTranscription()
+                    updateOutputText(result)
                 } catch (e: Exception) {
                     handleError(e)
                 } finally {
-                    showLoading(false) // Hide loading indicator
+                    showLoading(false)
                 }
             }
         }
@@ -78,11 +75,15 @@ class FirstFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private suspend fun performWhisperTranscription(): String {
+        return whisperHandler.whisper(whisperHandler.callOpenAI()!!, localPath!!).text
     }
 
+    private suspend fun updateOutputText(result: String) {
+        withContext(Dispatchers.Main) {
+            binding.textOutput.text = result
+        }
+    }
 
     private fun handleError(exception: Exception) {
         // Handle exceptions here, log or display meaningful error messages
@@ -95,30 +96,30 @@ class FirstFragment : Fragment() {
         fileChooserLauncher.launch(intent)
     }
 
-    private val fileChooserLauncher = registerForActivityResult<Intent, ActivityResult>(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result: ActivityResult ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            // Get the selected file URI
-            val data = result.data
-            if (data != null) {
-                val selectedFileUri = data.data
-
-                // Save the selected file to the app's internal storage
-                val savedFilePath = saveFileToInternalStorage(selectedFileUri)
-                val fileText = requireView().findViewById<View>(R.id.pathTextBox) as EditText
-                fileText.setText(savedFilePath)
-                localPath = savedFilePath
+    private val fileChooserLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                handleFileSelection(result.data)
             }
         }
-    }
 
+    private fun handleFileSelection(data: Intent?) {
+        val selectedFileUri = data?.data
+        if (selectedFileUri != null) {
+            val savedFilePath = saveFileToInternalStorage(selectedFileUri)
+            updateFilePathText(savedFilePath)
+            localPath = savedFilePath
+        }
+    }
 
     private fun saveFileToInternalStorage(uri: Uri?): String? {
         return try {
             requireContext().contentResolver.openInputStream(uri!!)?.use { inputStream ->
                 val fileExtension = getFileExtension(uri)
-                val internalFile = File(requireContext().filesDir, "selected_file$fileExtension")
+                val internalFile = File(
+                    requireContext().filesDir,
+                    "selected_file$fileExtension"
+                )
                 FileOutputStream(internalFile).use { outputStream ->
                     inputStream.copyTo(outputStream, bufferSize = 4 * 1024)
                 }
@@ -131,15 +132,17 @@ class FirstFragment : Fragment() {
     }
 
     private fun getFileExtension(uri: Uri?): String {
-        // Use ContentResolver to get the file extension from the URI
         val contentResolver = requireContext().contentResolver
         val mimeTypeMap = MimeTypeMap.getSingleton()
         return "." + mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri!!))
     }
 
+    private fun updateFilePathText(filePath: String?) {
+        val fileText = requireView().findViewById<View>(R.id.pathTextBox) as EditText
+        fileText.setText(filePath)
+    }
+
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
-
-
 }

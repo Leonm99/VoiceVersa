@@ -8,6 +8,7 @@
     android:padding="20dp">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
         android:layout_width="match_parent"
         android:layout_height="220dp"
         android:layout_gravity="bottom"
@@ -16,6 +17,7 @@
         app:cardElevation="20dp">
 
         <FrameLayout
+            android:id="@+id/contentContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -24,7 +26,9 @@
                 style="?android:attr/progressBarStyle"
                 android:layout_width="451dp"
                 android:layout_height="102dp"
-                android:layout_gravity="center" />
+                android:layout_gravity="center"
+                android:clickable="false"
+                android:longClickable="false" />
 
             <ScrollView
                 android:layout_width="match_parent"
@@ -34,7 +38,16 @@
                 <TextView
                     android:id="@+id/result_text"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:elevation="30dp"
+                    android:fontFamily="@font/roboto"
+                    android:textAlignment="viewStart"
+                    android:textColor="#4D4D4D"
+                    android:textSize="16sp" />
+                <!-- android:shadowColor="#20000000"
+                    android:shadowDx="4"
+                    android:shadowDy="4"
+                    android:shadowRadius="10" -->
             </ScrollView>
         </FrameLayout>
 
@@ -47,7 +60,8 @@
 
         <FrameLayout
             android:layout_width="184dp"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom">
 
             <Button
                 android:id="@+id/content_button"
@@ -59,7 +73,8 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom">
 
             <Button
                 android:id="@+id/window_close"

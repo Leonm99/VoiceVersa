@@ -1,6 +1,5 @@
 package com.example.whispdroid
 
-
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,7 +8,9 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.coroutines.CoroutineContext
-
 
 const val INTENT_COMMAND = "com.example.whispdroid.COMMAND"
 const val INTENT_COMMAND_EXIT = "EXIT"
@@ -28,40 +28,46 @@ private const val CODE_FOREGROUND_SERVICE = 1
 private const val CODE_EXIT_INTENT = 2
 private const val CODE_NOTE_INTENT = 3
 private val whisperHandler = WhisperHandler()
-private var job: Job = Job()
-private var result: String = ""
-
 
 class FloatingService : Service(), CoroutineScope {
+
+    private val job = Job()
     private var window: Window? = null
+    private var result: String = ""
+    private val handler = Handler(Looper.getMainLooper())
+
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        showNotification()
         window = Window(this)
 
         val command = intent?.getStringExtra(INTENT_COMMAND)
         val localPath = intent?.getStringExtra("PATH")
-        launch {
+
+        window?.open()
+
+        launch(Dispatchers.IO) {
             try {
                 val audioFileUri: Uri? = localPath?.let { Uri.fromFile(File(it)) }
                 val convertedUri = audioFileUri?.let {
-                    whisperHandler.convertAudio(
-                        this@FloatingService,
-                        it,
-                        "mp3"
-                    )
-                } // Replace "flac" with the desired format
+                    WhisperHandler().convertAudio(this@FloatingService, it, "mp3")
+                }
+
                 if (convertedUri != null) {
-                    val openAIResult = whisperHandler.callOpenAI() ?: return@launch
-                    val whisperResult =
-                        whisperHandler.whisper(
-                            openAIResult,
-                            convertedUri.path ?: return@launch
-                        ).text
+                    val openAIResult = WhisperHandler().callOpenAI() ?: return@launch
+                    val whisperResult = WhisperHandler().whisper(
+                        openAIResult,
+                        convertedUri.path ?: return@launch
+                    ).text
+
                     result = whisperResult
-                    window!!.open()
-                    window!!.updateTextView(result)
+
+                    launch(Dispatchers.Main) {
+                        window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
+                    }
+
                 } else {
                     // Handle the conversion failure
                 }
@@ -75,11 +81,6 @@ class FloatingService : Service(), CoroutineScope {
             }
         }
 
-
-        // Be sure to show the notification first for all commands.
-        // Don't worry, repeated calls have no effects.
-        showNotification()
-
         // Exit the service if we receive the EXIT command.
         // START_NOT_STICKY is important here, we don't want
         // the service to be relaunched.
@@ -88,37 +89,17 @@ class FloatingService : Service(), CoroutineScope {
             return START_NOT_STICKY
         }
 
-
-        // Show the floating window for adding a new note.
-        if (command == INTENT_COMMAND_SHOW) {
-
-
-            window!!.open()
-
-
-            return START_STICKY
-        }
         return super.onStartCommand(intent, flags, startId)
-
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-
-    /**
-     * Remove the foreground notification and stop the service.
-     */
     private fun stopService() {
         stopForeground(true)
         stopSelf()
     }
 
-
-    /**
-     * Create and show the foreground notification.
-     */
     private fun showNotification() {
-
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val exitIntent = Intent(this, FloatingService::class.java).apply {
@@ -137,14 +118,11 @@ class FloatingService : Service(), CoroutineScope {
             this, CODE_NOTE_INTENT, noteIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
-        // From Android O, it's necessary to create a notification channel first.
-
         try {
-
             with(
                 NotificationChannel(
                     NOTIFICATION_CHANNEL_GENERAL,
-                    "banenenschwadron",
+                    "quicknote_general",
                     NotificationManager.IMPORTANCE_DEFAULT
                 )
             ) {
@@ -156,8 +134,7 @@ class FloatingService : Service(), CoroutineScope {
                 manager.createNotificationChannel(this)
             }
         } catch (ignored: Exception) {
-
-
+            // Handle the exception if needed
         }
 
         with(
@@ -172,7 +149,7 @@ class FloatingService : Service(), CoroutineScope {
             setAutoCancel(false)
             setOngoing(true)
             setWhen(System.currentTimeMillis())
-            setSmallIcon(R.drawable.ic_launcher_foreground)
+            setSmallIcon(R.drawable.icon3)
             priority = NotificationManager.IMPORTANCE_DEFAULT
             setContentIntent(notePendingIntent)
             addAction(
@@ -184,7 +161,6 @@ class FloatingService : Service(), CoroutineScope {
             )
             startForeground(CODE_FOREGROUND_SERVICE, build())
         }
-
     }
 
     private fun clearCacheDirectory() {
@@ -193,5 +169,4 @@ class FloatingService : Service(), CoroutineScope {
             file.delete()
         }
     }
-
 }
