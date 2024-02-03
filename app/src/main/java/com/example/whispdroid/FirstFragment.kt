@@ -10,9 +10,14 @@ import android.view.ViewGroup
 import android.webkit.MimeTypeMap
 import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.whispdroid.databinding.FragmentFirstBinding
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,12 +34,17 @@ class FirstFragment : Fragment() {
     private val binding get() = _binding!!
     private var localPath: String? = null
     private val whisperHandler = WhisperHandler()
-
+    private val transcriptions = mutableListOf<Transcription>()
+    private lateinit var transcriptionAdapter: TranscriptionAdapter
+    private lateinit var jsonManager: JsonManager
+    lateinit var recyclerView: RecyclerView
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
+        jsonManager = JsonManager(requireContext())
+        recyclerView = binding.recyclerView
         return binding.root
     }
 
@@ -42,6 +52,11 @@ class FirstFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupClickListeners()
+        setupRecyclerView()
+
+
+
+
     }
 
     override fun onDestroyView() {
@@ -55,7 +70,8 @@ class FirstFragment : Fragment() {
                 try {
                     showLoading(true)
                     val result = performWhisperTranscription()
-                    updateOutputText(result)
+
+
                 } catch (e: Exception) {
                     handleError(e)
                 } finally {
@@ -73,17 +89,59 @@ class FirstFragment : Fragment() {
                 }
             }
         }
+
+
     }
 
-    private suspend fun performWhisperTranscription(): String {
-        return whisperHandler.whisper(whisperHandler.callOpenAI()!!, localPath!!).text
-    }
+    private fun setupRecyclerView() {
+        // Check if the RecyclerView's adapter is already set
+        if (recyclerView.adapter == null) {
+            // Clear the transcriptions list to avoid duplication
+            transcriptions.clear()
 
-    private suspend fun updateOutputText(result: String) {
-        withContext(Dispatchers.Main) {
-            binding.textOutput.text = result
+            // Load transcriptions from the JSON file
+            transcriptions.addAll(jsonManager.loadTranscriptions())
+            transcriptions.sortedByDescending { it.timestamp }
+            transcriptionAdapter = TranscriptionAdapter(transcriptions)
+            recyclerView.adapter = transcriptionAdapter
+            recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
         }
     }
+    private suspend fun performWhisperTranscription() {
+        try {
+            showLoading(true)
+            val result = whisperHandler.whisper(whisperHandler.callOpenAI()!!, localPath!!).text
+            saveTranscriptionToFile(result)
+            updateOutputText()
+        } catch (e: Exception) {
+            handleError(e)
+        } finally {
+            showLoading(false)
+        }
+    }
+
+    private suspend fun updateOutputText() {
+        withContext(Dispatchers.Main) {
+
+        }
+        // Notify the adapter that data set has changed
+        transcriptionAdapter.notifyDataSetChanged()
+    }
+
+    private fun saveTranscriptionToFile( content: String) {
+        transcriptions.clear()
+        val transcription = Transcription(content)
+        transcriptions.add(transcription)
+
+
+            transcriptions.addAll(jsonManager.loadTranscriptions())
+            jsonManager.saveTranscriptions(transcriptions) // Replace with the actual path
+
+    }
+
+
+
 
     private fun handleError(exception: Exception) {
         // Handle exceptions here, log or display meaningful error messages
@@ -145,4 +203,10 @@ class FirstFragment : Fragment() {
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
+
+
+
+
 }
+
+

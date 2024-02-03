@@ -1,33 +1,41 @@
 package com.example.whispdroid
 
 import android.Manifest
+import android.Manifest.*
 import android.app.UiModeManager
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.whispdroid.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
 
 
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    val navController = NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,12 +47,13 @@ class MainActivity : AppCompatActivity() {
             // Call Again :
             checkAndRequestPermissions();
         }
+        try {
+
+            // ... rest of body of onCreateView() ...
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         setSupportActionBar(binding.toolbar)
-
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -53,7 +62,10 @@ class MainActivity : AppCompatActivity() {
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
-
+        } catch (e: Exception) {
+            Log.e("TAG", "onCreateView", e)
+            throw e
+        }
         val mode = this.getSystemService(UI_MODE_SERVICE)
         if (mode is UiModeManager) {
             val currentModeType = mode.nightMode
@@ -63,7 +75,13 @@ class MainActivity : AppCompatActivity() {
                 // System is in Day mode
             }
         }
-       
+
+        val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            AppCompatDelegate.MODE_NIGHT_YES
+        } else {
+            AppCompatDelegate.MODE_NIGHT_NO
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -73,13 +91,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
-        }
+        return NavigationUI.onNavDestinationSelected(item!!,
+            findNavController(R.id.nav_host_fragment_content_main))
+                || super.onOptionsItemSelected(item)
+
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -97,49 +112,49 @@ class MainActivity : AppCompatActivity() {
         permissionReadExternalStorage =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.READ_MEDIA_IMAGES
+                permission.READ_MEDIA_IMAGES
             ) else ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                permission.READ_EXTERNAL_STORAGE
             )
         val permissionWriteExtarnalStorage: Int
         permissionWriteExtarnalStorage =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.READ_MEDIA_AUDIO
+                permission.READ_MEDIA_AUDIO
             ) else ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                permission.WRITE_EXTERNAL_STORAGE
             )
         val listPermissionsNeeded: MutableList<String> = ArrayList()
         if (permissionWriteExtarnalStorage != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) listPermissionsNeeded.add(
-                Manifest.permission.READ_MEDIA_AUDIO
-            ) else listPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                permission.READ_MEDIA_AUDIO
+            ) else listPermissionsNeeded.add(permission.WRITE_EXTERNAL_STORAGE)
         }
         if (permissionReadExternalStorage != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) listPermissionsNeeded.add(
-                Manifest.permission.READ_MEDIA_IMAGES
-            ) else listPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                permission.READ_MEDIA_IMAGES
+            ) else listPermissionsNeeded.add(permission.READ_EXTERNAL_STORAGE)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val permissionVideoStorage = ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.READ_MEDIA_VIDEO
+                permission.READ_MEDIA_VIDEO
             )
             if (permissionVideoStorage != PackageManager.PERMISSION_GRANTED) {
-                listPermissionsNeeded.add(Manifest.permission.READ_MEDIA_VIDEO)
+                listPermissionsNeeded.add(permission.READ_MEDIA_VIDEO)
             }
             val notificationPermission = ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.POST_NOTIFICATIONS
+                permission.POST_NOTIFICATIONS
             )
             if (notificationPermission != PackageManager.PERMISSION_GRANTED) {
-                listPermissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS)
+                listPermissionsNeeded.add(permission.POST_NOTIFICATIONS)
             }
             val systemAlertWindowPermission = ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.SYSTEM_ALERT_WINDOW
+                permission.SYSTEM_ALERT_WINDOW
             )
 
         }
@@ -165,17 +180,17 @@ class MainActivity : AppCompatActivity() {
                 val perms: MutableMap<String, Int> = HashMap()
                 // Initialize the map with both permissions
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    perms[Manifest.permission.READ_MEDIA_IMAGES] = PackageManager.PERMISSION_GRANTED
-                    perms[Manifest.permission.READ_MEDIA_AUDIO] = PackageManager.PERMISSION_GRANTED
-                    perms[Manifest.permission.READ_MEDIA_VIDEO] = PackageManager.PERMISSION_GRANTED
-                    perms[Manifest.permission.POST_NOTIFICATIONS] =
+                    perms[permission.READ_MEDIA_IMAGES] = PackageManager.PERMISSION_GRANTED
+                    perms[permission.READ_MEDIA_AUDIO] = PackageManager.PERMISSION_GRANTED
+                    perms[permission.READ_MEDIA_VIDEO] = PackageManager.PERMISSION_GRANTED
+                    perms[permission.POST_NOTIFICATIONS] =
                         PackageManager.PERMISSION_GRANTED
-                    perms[Manifest.permission.SYSTEM_ALERT_WINDOW] =
+                    perms[permission.SYSTEM_ALERT_WINDOW] =
                         PackageManager.PERMISSION_GRANTED
                 } else {
-                    perms[Manifest.permission.WRITE_EXTERNAL_STORAGE] =
+                    perms[permission.WRITE_EXTERNAL_STORAGE] =
                         PackageManager.PERMISSION_GRANTED
-                    perms[Manifest.permission.READ_EXTERNAL_STORAGE] =
+                    perms[permission.READ_EXTERNAL_STORAGE] =
                         PackageManager.PERMISSION_GRANTED
                 }
 
@@ -188,15 +203,15 @@ class MainActivity : AppCompatActivity() {
                         i++
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        if (perms[Manifest.permission.READ_MEDIA_IMAGES] == PackageManager.PERMISSION_GRANTED &&
-                            perms[Manifest.permission.READ_MEDIA_AUDIO] == PackageManager.PERMISSION_GRANTED &&
-                            perms[Manifest.permission.READ_MEDIA_VIDEO] == PackageManager.PERMISSION_GRANTED &&
-                            perms[Manifest.permission.POST_NOTIFICATIONS] == PackageManager.PERMISSION_GRANTED &&
-                            perms[Manifest.permission.SYSTEM_ALERT_WINDOW] == PackageManager.PERMISSION_GRANTED
+                        if (perms[permission.READ_MEDIA_IMAGES] == PackageManager.PERMISSION_GRANTED &&
+                            perms[permission.READ_MEDIA_AUDIO] == PackageManager.PERMISSION_GRANTED &&
+                            perms[permission.READ_MEDIA_VIDEO] == PackageManager.PERMISSION_GRANTED &&
+                            perms[permission.POST_NOTIFICATIONS] == PackageManager.PERMISSION_GRANTED &&
+                            perms[permission.SYSTEM_ALERT_WINDOW] == PackageManager.PERMISSION_GRANTED
                         ) {
                             Toast.makeText(
                                 this,
-                                "Jajakumullah, For Granting Permission.",
+                                "Permissions Granted! :)",
                                 Toast.LENGTH_LONG
                             ).show()
                             permissionSettingScreen()
@@ -204,19 +219,19 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             if (ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    Manifest.permission.READ_MEDIA_IMAGES
+                                    permission.READ_MEDIA_IMAGES
                                 )
                                 || ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    Manifest.permission.READ_MEDIA_AUDIO
+                                    permission.READ_MEDIA_AUDIO
                                 )
                                 || ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    Manifest.permission.READ_MEDIA_VIDEO
+                                    permission.READ_MEDIA_VIDEO
                                 )
                                 || ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    Manifest.permission.POST_NOTIFICATIONS
+                                    permission.POST_NOTIFICATIONS
                                 )
                             ) {
                                 showDialogOK(
@@ -237,23 +252,23 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     } else {
-                        if (perms[Manifest.permission.WRITE_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED
-                            && perms[Manifest.permission.READ_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED
+                        if (perms[permission.WRITE_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED
+                            && perms[permission.READ_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED
                         ) {
                             Toast.makeText(
                                 this,
-                                "Jajakumullah, For Granting Permission.",
+                                "Permissions Granted! :)",
                                 Toast.LENGTH_LONG
                             ).show()
                             //else any one or both the permissions are not granted
                         } else {
                             if (ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                                    permission.WRITE_EXTERNAL_STORAGE
                                 )
                                 || ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    Manifest.permission.READ_EXTERNAL_STORAGE
+                                    permission.READ_EXTERNAL_STORAGE
                                 )
                             ) {
                                 showDialogOK(
@@ -280,7 +295,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun permissionSettingScreen() {
-        Toast.makeText(this, "Enable All permissions, Click On Permission", Toast.LENGTH_LONG)
+        Toast.makeText(this, "Scroll down and grant WhispDroid permission.", Toast.LENGTH_LONG)
             .show()
         val intent = Intent()
         intent.setAction(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)

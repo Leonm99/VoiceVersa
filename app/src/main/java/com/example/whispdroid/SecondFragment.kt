@@ -23,7 +23,7 @@ class SecondFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
+        setHasOptionsMenu(true)
         _binding = FragmentSecondBinding.inflate(inflater, container, false)
         return binding.root
 

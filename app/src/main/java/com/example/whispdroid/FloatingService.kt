@@ -7,10 +7,13 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,23 +31,33 @@ private const val CODE_FOREGROUND_SERVICE = 1
 private const val CODE_EXIT_INTENT = 2
 private const val CODE_NOTE_INTENT = 3
 private val whisperHandler = WhisperHandler()
+private val transcriptions = mutableListOf<Transcription>()
 
-class FloatingService : Service(), CoroutineScope {
+
+class FloatingService : Service(), CoroutineScope, WindowCallback {
 
     private val job = Job()
     private var window: Window? = null
     private var result: String = ""
+    private var filePath: String = ""
     private val handler = Handler(Looper.getMainLooper())
-
+    override lateinit var jsonManager: JsonManager
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
+        jsonManager = JsonManager(applicationContext)
         showNotification()
 
+        val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            AppCompatDelegate.MODE_NIGHT_YES
+        } else {
+            AppCompatDelegate.MODE_NIGHT_NO
+        }
 
-        window = Window(this)
+
+        window = Window(this, this)
 
         val command = intent?.getStringExtra(INTENT_COMMAND)
         val localPath = intent?.getStringExtra("PATH")
@@ -67,6 +80,7 @@ class FloatingService : Service(), CoroutineScope {
                         ).text
 
                         result = whisperResult
+                        filePath = convertedUri.path ?: return@launch
 
                         launch(Dispatchers.Main) {
                             window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
@@ -167,6 +181,22 @@ class FloatingService : Service(), CoroutineScope {
         val cacheDirectory: File = cacheDir
         cacheDirectory.listFiles()?.forEach { file ->
             file.delete()
+        }
+    }
+
+    override fun onContentButtonClicked() {
+        if (result.isNotEmpty   ()) {
+
+        transcriptions.clear()
+        val transcription = Transcription(result)
+        transcriptions.add(transcription)
+
+            launch(Dispatchers.IO) {
+                transcriptions.addAll(jsonManager.loadTranscriptions())
+                jsonManager.saveTranscriptions(transcriptions)
+            }
+            result = ""
+
         }
     }
 }

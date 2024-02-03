@@ -10,12 +10,19 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.cardview.widget.CardView
 
-class Window(private val context: Context) {
+interface WindowCallback {
+    fun onContentButtonClicked()
+    var jsonManager: JsonManager
+}
+class Window(private val context: Context,private val callback: WindowCallback) {
 
     private val windowManager: WindowManager =
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -40,6 +47,7 @@ class Window(private val context: Context) {
     private lateinit var progressBar: ProgressBar
     private lateinit var cardView: CardView
     private lateinit var contentContainer: FrameLayout
+    private lateinit var contentButton: Button
     private var newText: String = ""
     private var charIndex: Int = 0
     private val handler = Handler(Looper.getMainLooper())
@@ -73,7 +81,7 @@ class Window(private val context: Context) {
         cardView = rootView.findViewById(R.id.cardView)
         contentContainer = rootView.findViewById(R.id.contentContainer)
         rootView.findViewById<View>(R.id.window_close).setOnClickListener { close() }
-
+        contentButton = rootView.findViewById(R.id.content_button)
         // Set initial properties for fade-in and slide-up
         rootView.alpha = 0f
         cardView.translationY = getCurrentDisplayMetrics().heightPixels.toFloat()
@@ -105,6 +113,18 @@ class Window(private val context: Context) {
         progressBar.setOnClickListener {
             stopTextAnimation()
         }
+
+        contentButton.setOnClickListener {
+            // Handle the content button click
+            callback.onContentButtonClicked()
+            if (newText.isNotEmpty()) {
+                Toast.makeText(context, "Transcription saved!", Toast.LENGTH_LONG).show()
+                close()
+            }
+
+        }
+
+
     }
 
     init {

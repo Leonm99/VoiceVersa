@@ -79,5 +79,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("com.arthenica:mobile-ffmpeg-full:4.4.LTS")
+    implementation ("com.google.android.material:material:1.11.0")
+    implementation ("com.google.code.gson:gson:2.10")
+    implementation ("androidx.recyclerview:recyclerview:1.3.2")
+
 
 }
