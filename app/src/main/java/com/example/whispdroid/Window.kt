@@ -10,19 +10,26 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.cardview.widget.CardView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 interface WindowCallback {
     fun onContentButtonClicked()
     var jsonManager: JsonManager
 }
-class Window(private val context: Context,private val callback: WindowCallback) {
+
+
+class Window(private val context: Context, private val callback: WindowCallback,
+             override val coroutineContext: CoroutineContext
+) : CoroutineScope {
 
     private val windowManager: WindowManager =
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -47,14 +54,15 @@ class Window(private val context: Context,private val callback: WindowCallback) 
     private lateinit var progressBar: ProgressBar
     private lateinit var cardView: CardView
     private lateinit var contentContainer: FrameLayout
-    private lateinit var contentButton: Button
+    private lateinit var contentButton: ImageButton
+    private lateinit var summarizeButton: ImageButton
     private var newText: String = ""
     private var charIndex: Int = 0
     private val handler = Handler(Looper.getMainLooper())
     private val TEXT_CHUNK_SIZE = 5
     private var continueTextAnimation: Boolean = true
     private var originalText: String = ""
-    
+
     private fun getCurrentDisplayMetrics(): DisplayMetrics {
         val dm = DisplayMetrics()
         windowManager.defaultDisplay.getMetrics(dm)
@@ -82,6 +90,10 @@ class Window(private val context: Context,private val callback: WindowCallback) 
         contentContainer = rootView.findViewById(R.id.contentContainer)
         rootView.findViewById<View>(R.id.window_close).setOnClickListener { close() }
         contentButton = rootView.findViewById(R.id.content_button)
+        summarizeButton = rootView.findViewById(R.id.summarize_content)
+
+
+
         // Set initial properties for fade-in and slide-up
         rootView.alpha = 0f
         cardView.translationY = getCurrentDisplayMetrics().heightPixels.toFloat()
@@ -100,6 +112,8 @@ class Window(private val context: Context,private val callback: WindowCallback) 
             .setDuration(500)
             .setStartDelay(500)
             .start()
+
+
 
         // Set the touch listeners
         textView.setOnClickListener {
@@ -121,6 +135,24 @@ class Window(private val context: Context,private val callback: WindowCallback) 
                 Toast.makeText(context, "Transcription saved!", Toast.LENGTH_LONG).show()
                 close()
             }
+
+        }
+
+        summarizeButton.setOnClickListener {
+            // Handle the summarize button click
+
+            launch(Dispatchers.IO) {
+                val openAI = ChatHandler().callOpenAI() ?: return@launch
+                val chatCompletion = ChatHandler().summarize(openAI, newText)
+                val summary = chatCompletion.choices[0].message.content
+                var result = summary.toString()
+                Log.d("Summary", result)
+                launch(Dispatchers.Main) {
+                    updateTextViewWithSlightlyUnevenTypingEffect(result)
+                }
+            }
+                Toast.makeText(context, "Transcription saved!", Toast.LENGTH_LONG).show()
+
 
         }
 

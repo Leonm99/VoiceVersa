@@ -15,6 +15,11 @@ import android.os.Looper
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationCompat
+import com.aallam.openai.api.chat.ChatCompletion
+import com.aallam.openai.api.chat.ChatCompletionRequest
+import com.aallam.openai.api.chat.ChatMessage
+import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.model.ModelId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -57,7 +62,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         }
 
 
-        window = Window(this, this)
+        window = Window(this, this,coroutineContext)
 
         val command = intent?.getStringExtra(INTENT_COMMAND)
         val localPath = intent?.getStringExtra("PATH")
@@ -124,6 +129,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         super.onRebind(intent)
         Log.d("FloatingService", "onRebind")
     }
+
 
     private fun showNotification() {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -204,4 +210,8 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
 
         }
     }
+
+
+
+
 }
