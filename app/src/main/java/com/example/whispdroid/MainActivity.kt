@@ -1,7 +1,6 @@
 package com.example.whispdroid
 
-import android.Manifest
-import android.Manifest.*
+import android.Manifest.permission
 import android.app.UiModeManager
 import android.content.DialogInterface
 import android.content.Intent
@@ -30,7 +29,6 @@ import com.example.whispdroid.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
 
 
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -51,17 +49,17 @@ class MainActivity : AppCompatActivity() {
 
             // ... rest of body of onCreateView() ...
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+            setSupportActionBar(binding.toolbar)
+            val navController = findNavController(R.id.nav_host_fragment_content_main)
+            appBarConfiguration = AppBarConfiguration(navController.graph)
+            setupActionBarWithNavController(navController, appBarConfiguration)
 
-        binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
+            binding.fab.setOnClickListener { view ->
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show()
+            }
         } catch (e: Exception) {
             Log.e("TAG", "onCreateView", e)
             throw e
@@ -91,8 +89,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return NavigationUI.onNavDestinationSelected(item!!,
-            findNavController(R.id.nav_host_fragment_content_main))
+        return NavigationUI.onNavDestinationSelected(
+            item!!,
+            findNavController(R.id.nav_host_fragment_content_main)
+        )
                 || super.onOptionsItemSelected(item)
 
     }
@@ -103,6 +103,22 @@ class MainActivity : AppCompatActivity() {
                 || super.onSupportNavigateUp()
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        Log.d("MainActivity", "onResume")
+        // Find the FirstFragment by tag
+        val firstFragment =
+            supportFragmentManager.findFragmentByTag("FirstFragment") as? FirstFragment
+        // Check if the fragment is not null and is added
+
+
+        if (firstFragment != null) {
+            Log.d("MainActivity", "reload")
+            firstFragment.reloadData()
+        }
+
+    }
 
     val REQUEST_ID_MULTIPLE_PERMISSIONS = 1
 

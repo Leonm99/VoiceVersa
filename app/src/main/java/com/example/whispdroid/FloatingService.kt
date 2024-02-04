@@ -12,7 +12,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.widget.Toast
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
@@ -120,6 +120,11 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         stopSelf()
     }
 
+    override fun onRebind(intent: Intent?) {
+        super.onRebind(intent)
+        Log.d("FloatingService", "onRebind")
+    }
+
     private fun showNotification() {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -185,11 +190,11 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
     }
 
     override fun onContentButtonClicked() {
-        if (result.isNotEmpty   ()) {
+        if (result.isNotEmpty()) {
 
-        transcriptions.clear()
-        val transcription = Transcription(result)
-        transcriptions.add(transcription)
+            transcriptions.clear()
+            val transcription = Transcription(result)
+            transcriptions.add(transcription)
 
             launch(Dispatchers.IO) {
                 transcriptions.addAll(jsonManager.loadTranscriptions())

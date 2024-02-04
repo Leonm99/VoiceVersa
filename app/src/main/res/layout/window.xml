@@ -13,8 +13,9 @@
         android:layout_height="220dp"
         android:layout_gravity="bottom"
         android:layout_marginBottom="50dp"
+        app:cardBackgroundColor="?android:attr/colorBackground"
         app:cardCornerRadius="20dp"
-        app:cardElevation="20dp">
+        app:cardElevation="3dp">
 
         <FrameLayout
             android:id="@+id/contentContainer"
@@ -33,6 +34,7 @@
             <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="#00242424"
                 android:padding="10dp">
 
                 <TextView
@@ -42,7 +44,7 @@
                     android:elevation="30dp"
                     android:fontFamily="@font/roboto"
                     android:textAlignment="viewStart"
-                    android:textColor="#4D4D4D"
+                    android:textColor="#1D1D1D"
                     android:textSize="16sp" />
                 <!-- android:shadowColor="#20000000"
                     android:shadowDx="4"
@@ -68,7 +70,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center_horizontal"
-                android:text="Save" />
+                android:text="Save"
+                android:textColor="#000000" />
         </FrameLayout>
 
         <FrameLayout
@@ -81,7 +84,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center_horizontal"
-                android:text="Discard" />
+                android:text="Discard"
+                android:textColor="#000000" />
 
         </FrameLayout>
     </LinearLayout>
