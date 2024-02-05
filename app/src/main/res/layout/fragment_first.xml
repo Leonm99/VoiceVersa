@@ -3,9 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:textAlignment="center"
-    tools:context=".FirstFragment"
-    android:orientation="vertical">
+    tools:context=".FirstFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,14 +17,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center_horizontal|center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp">
 
             <EditText
                 android:id="@+id/pathTextBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="2"
                 android:ems="10"
-                android:hint="Choose a File ->"
+                android:hint="@string/choose_a_file"
                 android:inputType="text"
                 android:textAlignment="center" />
 
@@ -32,7 +35,8 @@
                 android:id="@+id/buttonChooseFile"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Choose File" />
+                android:layout_weight="1"
+                android:text="@string/choose_file" />
 
         </LinearLayout>
 
@@ -40,7 +44,9 @@
             android:id="@+id/buttonStartTranscription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Start" />
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:text="@string/start" />
 
     </LinearLayout>
 
@@ -67,7 +73,6 @@
             android:visibility="invisible" />
 
     </RelativeLayout>
-
 
 
 </LinearLayout>

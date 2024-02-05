@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#43000000"
@@ -9,18 +8,19 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardView"
-        style="@style/MyCardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:minHeight="220dp"
         android:theme="@style/MyCardView"
+
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MaterialCardView.Cut">
 
         <FrameLayout
             android:id="@+id/contentContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginBottom="50dp"
             android:minHeight="220dp">
 
             <ProgressBar
@@ -35,7 +35,6 @@
             <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginBottom="50dp"
 
                 android:padding="10dp">
 
@@ -82,7 +81,8 @@
                 android:background="@android:color/transparent"
                 android:scaleX="1.5"
                 android:scaleY="1.5"
-                android:src="@drawable/translate" />
+                android:src="@drawable/translate"
+                android:contentDescription="@string/todo" />
 
             <ImageButton
                 android:id="@+id/content_button"
@@ -93,7 +93,8 @@
                 android:background="@android:color/transparent"
                 android:scaleX="1.5"
                 android:scaleY="1.5"
-                android:src="@drawable/save" />
+                android:src="@drawable/save"
+                android:contentDescription="@string/todo" />
 
             <ImageButton
                 android:id="@+id/window_close"
@@ -104,7 +105,8 @@
                 android:background="@android:color/transparent"
                 android:scaleX="1.5"
                 android:scaleY="1.5"
-                android:src="@drawable/delete" />
+                android:src="@drawable/delete"
+                android:contentDescription="@string/todo" />
 
         </LinearLayout>
 
