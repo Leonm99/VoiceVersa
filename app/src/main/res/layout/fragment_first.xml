@@ -29,7 +29,8 @@
                 android:ems="10"
                 android:hint="@string/choose_a_file"
                 android:inputType="text"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:autofillHints="@string/todo" />
 
             <Button
                 android:id="@+id/buttonChooseFile"

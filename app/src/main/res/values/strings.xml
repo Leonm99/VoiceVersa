@@ -44,5 +44,10 @@
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
     <string name="title_activity_recieve_intent">RecieveIntentActivity</string>
+    <string name="Placeholder">Placeholder text</string>
+    <string name="choose_a_file"><![CDATA[Choose a File ->]]></string>
+    <string name="choose_file">Choose File</string>
+    <string name="start">Start</string>
+    <string name="todo">TODO</string>
 
 </resources>

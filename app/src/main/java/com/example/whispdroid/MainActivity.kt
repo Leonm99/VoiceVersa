@@ -226,7 +226,6 @@ class MainActivity : AppCompatActivity() {
                                 )
                             ) {
                                 showDialogOK(
-                                    "Necessary Permissions required for this app"
                                 ) { dialog, which ->
                                     when (which) {
                                         DialogInterface.BUTTON_POSITIVE -> checkAndRequestPermissions()
@@ -263,7 +262,7 @@ class MainActivity : AppCompatActivity() {
                                 )
                             ) {
                                 showDialogOK(
-                                    "Necessary Permissions required for this app"
+
                                 ) { dialog, which ->
                                     when (which) {
                                         DialogInterface.BUTTON_POSITIVE -> checkAndRequestPermissions()
@@ -298,9 +297,9 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun showDialogOK(message: String, okListener: DialogInterface.OnClickListener) {
+    private fun showDialogOK(okListener: DialogInterface.OnClickListener) {
         AlertDialog.Builder(this)
-            .setMessage(message)
+            .setMessage("Necessary Permissions required for this app")
             .setPositiveButton("OK", okListener)
             .setNegativeButton("Cancel", okListener)
             .create()

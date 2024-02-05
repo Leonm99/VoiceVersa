@@ -70,7 +70,8 @@
                 android:background="@android:color/transparent"
                 android:scaleX="1.5"
                 android:scaleY="1.5"
-                android:src="@drawable/summarize" />
+                android:src="@drawable/summarize"
+                android:contentDescription="@string/todo" />
 
             <ImageButton
                 android:id="@+id/translate_content"
