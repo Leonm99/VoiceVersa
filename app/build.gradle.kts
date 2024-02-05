@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.whispdroid"
+    namespace = "com.leonm.voiceversa"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.whispdroid"
+        applicationId = "com.leonm.voiceversa"
         minSdk = 28
         targetSdk = 34
         versionCode = 1
@@ -25,7 +25,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -48,8 +48,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-
-
 }
 
 dependencies {
@@ -78,10 +76,8 @@ dependencies {
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-    implementation("com.arthenica:mobile-ffmpeg-full:4.4.LTS")
-    implementation ("com.google.android.material:material:1.11.0")
-    implementation ("com.google.code.gson:gson:2.10")
-    implementation ("androidx.recyclerview:recyclerview:1.3.2")
-
-
+    implementation("com.arthenica:mobile-ffmpeg-full:4.4")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 }

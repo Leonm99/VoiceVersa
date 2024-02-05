@@ -1,4 +1,4 @@
-package com.example.whispdroid
+package com.leonm.voiceversa
 
 import android.app.Activity
 import android.content.Intent
@@ -6,13 +6,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import androidx.compose.foundation.isSystemInDarkTheme
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 
 class ReceiveIntentActivity : Activity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -26,7 +24,7 @@ class ReceiveIntentActivity : Activity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent?.action == Intent.ACTION_SEND && intent.type?.startsWith("audio/") == true || intent?.type?.startsWith(
-                "video/"
+                "video/",
             ) == true
         ) {
             // An audio file was received
@@ -50,7 +48,6 @@ class ReceiveIntentActivity : Activity() {
 
     private fun saveToCache(uri: Uri): File? {
         try {
-            
             val inputStream: InputStream? = contentResolver.openInputStream(uri)
             val cacheDir: File? = cacheDir
 
@@ -80,7 +77,4 @@ class ReceiveIntentActivity : Activity() {
         val mimeTypeMap = android.webkit.MimeTypeMap.getSingleton()
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri)) ?: ""
     }
-
-
 }
-

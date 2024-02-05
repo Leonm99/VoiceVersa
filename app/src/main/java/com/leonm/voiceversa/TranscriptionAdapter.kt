@@ -1,4 +1,4 @@
-package com.example.whispdroid
+package com.leonm.voiceversa
 
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +11,7 @@ import java.util.Locale
 data class Transcription(
     val content: String,
     val timestamp: Long = System.currentTimeMillis(),
-    val formattedDateTime: String = formatTimestamp(timestamp)
+    val formattedDateTime: String = formatTimestamp(timestamp),
 ) {
     companion object {
         private fun formatTimestamp(timestamp: Long): String {
@@ -20,19 +20,25 @@ data class Transcription(
         }
     }
 }
+
 class TranscriptionAdapter(private val transcriptions: List<Transcription>) :
     RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
-
     // Sort the transcriptions by timestamp in descending order
 
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TranscriptionViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_transcription, parent, false)
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): TranscriptionViewHolder {
+        val view =
+            LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_transcription, parent, false)
         return TranscriptionViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: TranscriptionViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: TranscriptionViewHolder,
+        position: Int,
+    ) {
         val transcription = transcriptions[position]
         holder.bind(transcription)
     }
@@ -40,12 +46,10 @@ class TranscriptionAdapter(private val transcriptions: List<Transcription>) :
     override fun getItemCount(): Int = transcriptions.size
 
     class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
         private val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
 
         fun bind(transcription: Transcription) {
-
             textTranscriptionContent.text = transcription.content
             textTranscriptionDate.text = transcription.formattedDateTime
         }

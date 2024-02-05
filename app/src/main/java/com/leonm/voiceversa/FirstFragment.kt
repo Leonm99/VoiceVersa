@@ -1,4 +1,4 @@
-package com.example.whispdroid
+package com.leonm.voiceversa
 
 import android.app.Activity
 import android.content.Intent
@@ -15,7 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.whispdroid.databinding.FragmentFirstBinding
+import com.leonm.voiceversa.databinding.FragmentFirstBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,18 +27,20 @@ import java.io.IOException
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
 class FirstFragment : Fragment() {
-
+    @Suppress("ktlint:standard:property-naming")
     private var _binding: FragmentFirstBinding? = null
     private val binding get() = _binding!!
     private var localPath: String? = null
-    private val whisperHandler = WhisperHandler()
+    private val openAiHandler = OpenAiHandler()
     private val transcriptions = mutableListOf<Transcription>()
     private lateinit var transcriptionAdapter: TranscriptionAdapter
     private lateinit var jsonManager: JsonManager
     lateinit var recyclerView: RecyclerView
+
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
     ): View? {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         jsonManager = JsonManager(requireContext())
@@ -46,13 +48,14 @@ class FirstFragment : Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         setupClickListeners()
         setupRecyclerView()
-
-
     }
 
     override fun onDestroyView() {
@@ -66,8 +69,6 @@ class FirstFragment : Fragment() {
                 try {
                     showLoading(true)
                     val result = performWhisperTranscription()
-
-
                 } catch (e: Exception) {
                     handleError(e)
                 } finally {
@@ -85,8 +86,6 @@ class FirstFragment : Fragment() {
                 }
             }
         }
-
-
     }
 
     override fun onResume() {
@@ -106,14 +105,13 @@ class FirstFragment : Fragment() {
             transcriptionAdapter = TranscriptionAdapter(transcriptions)
             recyclerView.adapter = transcriptionAdapter
             recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
         }
     }
 
     private suspend fun performWhisperTranscription() {
         try {
             showLoading(true)
-            val result = whisperHandler.whisper(whisperHandler.callOpenAI()!!, localPath!!).text
+            val result = openAiHandler.whisper(openAiHandler.callOpenAI()!!, localPath!!).text
             saveTranscriptionToFile(result)
             updateOutputText()
         } catch (e: Exception) {
@@ -125,7 +123,6 @@ class FirstFragment : Fragment() {
 
     private suspend fun updateOutputText() {
         withContext(Dispatchers.Main) {
-
         }
         // Notify the adapter that data set has changed
         transcriptionAdapter.notifyDataSetChanged()
@@ -136,12 +133,9 @@ class FirstFragment : Fragment() {
         val transcription = Transcription(content)
         transcriptions.add(transcription)
 
-
         transcriptions.addAll(jsonManager.loadTranscriptions())
         jsonManager.saveTranscriptions(transcriptions) // Replace with the actual path
-
     }
-
 
     private fun handleError(exception: Exception) {
         // Handle exceptions here, log or display meaningful error messages
@@ -174,10 +168,11 @@ class FirstFragment : Fragment() {
         return try {
             requireContext().contentResolver.openInputStream(uri!!)?.use { inputStream ->
                 val fileExtension = getFileExtension(uri)
-                val internalFile = File(
-                    requireContext().filesDir,
-                    "selected_file$fileExtension"
-                )
+                val internalFile =
+                    File(
+                        requireContext().filesDir,
+                        "selected_file$fileExtension",
+                    )
                 FileOutputStream(internalFile).use { outputStream ->
                     inputStream.copyTo(outputStream, bufferSize = 4 * 1024)
                 }
@@ -211,8 +206,4 @@ class FirstFragment : Fragment() {
         Log.d("transcriptions", "yeah we get here")
         transcriptionAdapter.notifyDataSetChanged()
     }
-
-
 }
-
-

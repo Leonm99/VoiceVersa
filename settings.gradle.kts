@@ -13,6 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "WhispDroid"
+rootProject.name = "com.leonm.voiceversa"
 include(":app")
- 

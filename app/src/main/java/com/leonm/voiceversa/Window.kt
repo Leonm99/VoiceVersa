@@ -1,7 +1,8 @@
-package com.example.whispdroid
+package com.leonm.voiceversa
 
 import android.content.Context
 import android.graphics.PixelFormat
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
@@ -23,32 +24,34 @@ import kotlin.coroutines.CoroutineContext
 
 interface WindowCallback {
     fun onContentButtonClicked()
+
     var jsonManager: JsonManager
 }
 
-
-class Window(private val context: Context, private val callback: WindowCallback,
-             override val coroutineContext: CoroutineContext
+class Window(
+    private val context: Context,
+    private val callback: WindowCallback,
+    override val coroutineContext: CoroutineContext,
 ) : CoroutineScope {
-
     private val windowManager: WindowManager =
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val layoutInflater: LayoutInflater =
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
     private val rootView: View = layoutInflater.inflate(R.layout.window, null)
 
-    private val windowParams = WindowManager.LayoutParams().apply {
-        width = WindowManager.LayoutParams.MATCH_PARENT
-        height = WindowManager.LayoutParams.MATCH_PARENT
-        type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        flags = (
+    private val windowParams =
+        WindowManager.LayoutParams().apply {
+            width = WindowManager.LayoutParams.MATCH_PARENT
+            height = WindowManager.LayoutParams.MATCH_PARENT
+            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            flags = (
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                        or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                        or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-                )
-        format = PixelFormat.TRANSLUCENT
-    }
+                    or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                    or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+            )
+            format = PixelFormat.TRANSLUCENT
+        }
 
     private lateinit var textView: TextView
     private lateinit var progressBar: ProgressBar
@@ -59,21 +62,35 @@ class Window(private val context: Context, private val callback: WindowCallback,
     private var newText: String = ""
     private var charIndex: Int = 0
     private val handler = Handler(Looper.getMainLooper())
-    private val TEXT_CHUNK_SIZE = 5
+    private var metrix = Pair(0, 0)
+
     private var continueTextAnimation: Boolean = true
     private var originalText: String = ""
 
-    private fun getCurrentDisplayMetrics(): DisplayMetrics {
-        val dm = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(dm)
-        return dm
+    private fun getCurrentDisplayMetrics(): Any {
+        val width: Int
+        val height: Int
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val windowMetrics = windowManager.currentWindowMetrics
+            val bounds = windowMetrics.bounds
+            width = bounds.width()
+            height = bounds.height()
+        } else {
+            val dm = DisplayMetrics()
+            windowManager.defaultDisplay.getMetrics(dm)
+            width = dm.widthPixels
+            height = dm.heightPixels
+        }
+        metrix = Pair(width, height)
+        return metrix
     }
 
     private fun calculateSizeAndPosition(params: WindowManager.LayoutParams) {
         val dm = getCurrentDisplayMetrics()
-        params.gravity = Gravity.TOP or Gravity.LEFT
-        params.width = dm.widthPixels
-        params.height = dm.heightPixels
+        params.gravity = Gravity.TOP or Gravity.START
+        params.width = metrix.first
+        params.height = metrix.second
         params.x = 0
         params.y = 0
     }
@@ -92,11 +109,9 @@ class Window(private val context: Context, private val callback: WindowCallback,
         contentButton = rootView.findViewById(R.id.content_button)
         summarizeButton = rootView.findViewById(R.id.summarize_content)
 
-
-
         // Set initial properties for fade-in and slide-up
         rootView.alpha = 0f
-        cardView.translationY = getCurrentDisplayMetrics().heightPixels.toFloat()
+        cardView.translationY = metrix.second.toFloat()
 
         // Apply the fade-in and slide-up animation
         rootView.animate()
@@ -112,8 +127,6 @@ class Window(private val context: Context, private val callback: WindowCallback,
             .setDuration(500)
             .setStartDelay(500)
             .start()
-
-
 
         // Set the touch listeners
         textView.setOnClickListener {
@@ -135,28 +148,25 @@ class Window(private val context: Context, private val callback: WindowCallback,
                 Toast.makeText(context, "Transcription saved!", Toast.LENGTH_LONG).show()
                 close()
             }
-
         }
 
         summarizeButton.setOnClickListener {
             // Handle the summarize button click
+            summarizeButton.isClickable = false
 
             launch(Dispatchers.IO) {
-                val openAI = ChatHandler().callOpenAI() ?: return@launch
-                val chatCompletion = ChatHandler().summarize(openAI, newText)
+                val openAI = OpenAiHandler().callOpenAI() ?: return@launch
+                val chatCompletion = OpenAiHandler().summarize(openAI, newText)
                 val summary = chatCompletion.choices[0].message.content
-                var result = summary.toString()
+                val result = summary.toString()
                 Log.d("Summary", result)
+
                 launch(Dispatchers.Main) {
                     updateTextViewWithSlightlyUnevenTypingEffect(result)
                 }
             }
-                Toast.makeText(context, "Transcription saved!", Toast.LENGTH_LONG).show()
-
-
+            Toast.makeText(context, "Transcription saved!", Toast.LENGTH_LONG).show()
         }
-
-
     }
 
     init {
@@ -175,10 +185,22 @@ class Window(private val context: Context, private val callback: WindowCallback,
     }
 
     fun close() {
+        rootView.animate()
+            .alpha(1f)
+            .setDuration(500)
+            .setStartDelay(500)
+            .withEndAction {
+                Log.d("Window", "Animation complete")
+            }.start()
+
+        cardView.animate()
+            .translationY(0f)
+            .setDuration(500)
+            .setStartDelay(500)
+            .start()
         Log.d("Window", "Closing window")
         try {
             windowManager.removeView(rootView)
-
         } catch (e: Exception) {
             // Handle exception for production, show a warning to the user
             e.printStackTrace()
@@ -198,19 +220,22 @@ class Window(private val context: Context, private val callback: WindowCallback,
         val delay = 15L
         val unevenFactor = 0.5
 
-        handler.postDelayed(object : Runnable {
-            override fun run() {
-                if (charIndex <= text.length && continueTextAnimation) {
-                    newText = text.substring(0, charIndex)
-                    textView.text = newText
+        handler.postDelayed(
+            object : Runnable {
+                override fun run() {
+                    if (charIndex <= text.length && continueTextAnimation) {
+                        newText = text.substring(0, charIndex)
+                        textView.text = newText
 
-                    charIndex++
-                    val nextDelay =
-                        (delay * (1 + (Math.random() - 0.5) * 2 * unevenFactor)).toLong()
-                    handler.postDelayed(this, nextDelay)
+                        charIndex++
+                        val nextDelay =
+                            (delay * (1 + (Math.random() - 0.5) * 2 * unevenFactor)).toLong()
+                        handler.postDelayed(this, nextDelay)
+                    }
                 }
-            }
-        }, delay)
+            },
+            delay,
+        )
     }
 
     fun stopTextAnimation() {

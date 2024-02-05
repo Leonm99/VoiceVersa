@@ -1,4 +1,4 @@
-package com.example.whispdroid
+package com.leonm.voiceversa
 
 import android.Manifest.permission
 import android.content.DialogInterface
@@ -23,25 +23,21 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import com.example.whispdroid.databinding.ActivityMainBinding
-
+import com.leonm.voiceversa.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
-
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (checkAndRequestPermissions()) {
-
             // Do your desire work here
-
         } else {
             // Call Again :
             checkAndRequestPermissions()
         }
+
         // ... rest of body of onCreateView() ...
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -50,7 +46,6 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
-
 
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
@@ -69,16 +64,15 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return NavigationUI.onNavDestinationSelected(
             item,
-            findNavController(R.id.nav_host_fragment_content_main)
-        )
-                || super.onOptionsItemSelected(item)
-
+            findNavController(R.id.nav_host_fragment_content_main),
+        ) ||
+            super.onOptionsItemSelected(item)
     }
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
+        return navController.navigateUp(appBarConfiguration) ||
+            super.onSupportNavigateUp()
     }
 
     override fun onResume() {
@@ -90,80 +84,93 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentByTag("FirstFragment") as? FirstFragment
         // Check if the fragment is not null and is added
 
-
         if (firstFragment != null) {
             Log.d("MainActivity", "reload")
             firstFragment.reloadData()
         }
-
     }
 
     val REQUEST_ID_MULTIPLE_PERMISSIONS = 1
 
-
     private fun checkAndRequestPermissions(): Boolean {
         val permissionReadExternalStorage: Int
         permissionReadExternalStorage =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ContextCompat.checkSelfPermission(
-                this,
-                permission.READ_MEDIA_IMAGES
-            ) else ContextCompat.checkSelfPermission(
-                this,
-                permission.READ_EXTERNAL_STORAGE
-            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.READ_MEDIA_IMAGES,
+                )
+            } else {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.READ_EXTERNAL_STORAGE,
+                )
+            }
         val permissionWriteExtarnalStorage: Int
         permissionWriteExtarnalStorage =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) ContextCompat.checkSelfPermission(
-                this,
-                permission.READ_MEDIA_AUDIO
-            ) else ContextCompat.checkSelfPermission(
-                this,
-                permission.WRITE_EXTERNAL_STORAGE
-            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.READ_MEDIA_AUDIO,
+                )
+            } else {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.WRITE_EXTERNAL_STORAGE,
+                )
+            }
         val listPermissionsNeeded: MutableList<String> = ArrayList()
         if (permissionWriteExtarnalStorage != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) listPermissionsNeeded.add(
-                permission.READ_MEDIA_AUDIO
-            ) else listPermissionsNeeded.add(permission.WRITE_EXTERNAL_STORAGE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                listPermissionsNeeded.add(
+                    permission.READ_MEDIA_AUDIO,
+                )
+            } else {
+                listPermissionsNeeded.add(permission.WRITE_EXTERNAL_STORAGE)
+            }
         }
         if (permissionReadExternalStorage != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) listPermissionsNeeded.add(
-                permission.READ_MEDIA_IMAGES
-            ) else listPermissionsNeeded.add(permission.READ_EXTERNAL_STORAGE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                listPermissionsNeeded.add(
+                    permission.READ_MEDIA_IMAGES,
+                )
+            } else {
+                listPermissionsNeeded.add(permission.READ_EXTERNAL_STORAGE)
+            }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val permissionVideoStorage = ContextCompat.checkSelfPermission(
-                this,
-                permission.READ_MEDIA_VIDEO
-            )
+            val permissionVideoStorage =
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.READ_MEDIA_VIDEO,
+                )
             if (permissionVideoStorage != PackageManager.PERMISSION_GRANTED) {
                 listPermissionsNeeded.add(permission.READ_MEDIA_VIDEO)
             }
-            val notificationPermission = ContextCompat.checkSelfPermission(
-                this,
-                permission.POST_NOTIFICATIONS
-            )
+            val notificationPermission =
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.POST_NOTIFICATIONS,
+                )
             if (notificationPermission != PackageManager.PERMISSION_GRANTED) {
                 listPermissionsNeeded.add(permission.POST_NOTIFICATIONS)
             }
-
-
         }
         if (!listPermissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions(
                 this,
                 listPermissionsNeeded.toTypedArray<String>(),
-                REQUEST_ID_MULTIPLE_PERMISSIONS
+                REQUEST_ID_MULTIPLE_PERMISSIONS,
             )
             return false
         }
         return true
     }
 
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        permissions: Array<String>, grantResults: IntArray
+        permissions: Array<String>,
+        grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
@@ -185,7 +192,6 @@ class MainActivity : AppCompatActivity() {
                         PackageManager.PERMISSION_GRANTED
                 }
 
-
                 // Fill with actual results from user
                 if (grantResults.size > 0) {
                     var i = 0
@@ -203,37 +209,36 @@ class MainActivity : AppCompatActivity() {
                             Toast.makeText(
                                 this,
                                 "Permissions Granted! :)",
-                                Toast.LENGTH_LONG
+                                Toast.LENGTH_LONG,
                             ).show()
                             permissionSettingScreen()
-                            //else any one or both the permissions are not granted
+                            // else any one or both the permissions are not granted
                         } else {
                             if (ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    permission.READ_MEDIA_IMAGES
-                                )
-                                || ActivityCompat.shouldShowRequestPermissionRationale(
+                                    permission.READ_MEDIA_IMAGES,
+                                ) ||
+                                ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    permission.READ_MEDIA_AUDIO
-                                )
-                                || ActivityCompat.shouldShowRequestPermissionRationale(
+                                    permission.READ_MEDIA_AUDIO,
+                                ) ||
+                                ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    permission.READ_MEDIA_VIDEO
-                                )
-                                || ActivityCompat.shouldShowRequestPermissionRationale(
+                                    permission.READ_MEDIA_VIDEO,
+                                ) ||
+                                ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    permission.POST_NOTIFICATIONS
+                                    permission.POST_NOTIFICATIONS,
                                 )
                             ) {
-                                showDialogOK(
-                                ) { dialog, which ->
+                                showDialogOK { dialog, which ->
                                     when (which) {
                                         DialogInterface.BUTTON_POSITIVE -> checkAndRequestPermissions()
-                                        DialogInterface.BUTTON_NEGATIVE ->                                                     // proceed with logic by disabling the related features or quit the app.
+                                        DialogInterface.BUTTON_NEGATIVE -> // proceed with logic by disabling the related features or quit the app.
                                             Toast.makeText(
                                                 this@MainActivity,
                                                 "Necessary Permissions required for this app",
-                                                Toast.LENGTH_LONG
+                                                Toast.LENGTH_LONG,
                                             ).show()
                                     }
                                 }
@@ -242,35 +247,33 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     } else {
-                        if (perms[permission.WRITE_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED
-                            && perms[permission.READ_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED
+                        if (perms[permission.WRITE_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED &&
+                            perms[permission.READ_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED
                         ) {
                             Toast.makeText(
                                 this,
                                 "Permissions Granted! :)",
-                                Toast.LENGTH_LONG
+                                Toast.LENGTH_LONG,
                             ).show()
-                            //else any one or both the permissions are not granted
+                            // else any one or both the permissions are not granted
                         } else {
                             if (ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    permission.WRITE_EXTERNAL_STORAGE
-                                )
-                                || ActivityCompat.shouldShowRequestPermissionRationale(
+                                    permission.WRITE_EXTERNAL_STORAGE,
+                                ) ||
+                                ActivityCompat.shouldShowRequestPermissionRationale(
                                     this,
-                                    permission.READ_EXTERNAL_STORAGE
+                                    permission.READ_EXTERNAL_STORAGE,
                                 )
                             ) {
-                                showDialogOK(
-
-                                ) { dialog, which ->
+                                showDialogOK { dialog, which ->
                                     when (which) {
                                         DialogInterface.BUTTON_POSITIVE -> checkAndRequestPermissions()
-                                        DialogInterface.BUTTON_NEGATIVE ->                                                     // proceed with logic by disabling the related features or quit the app.
+                                        DialogInterface.BUTTON_NEGATIVE -> // proceed with logic by disabling the related features or quit the app.
                                             Toast.makeText(
                                                 this@MainActivity,
                                                 "Necessary Permissions required for this app",
-                                                Toast.LENGTH_LONG
+                                                Toast.LENGTH_LONG,
                                             ).show()
                                     }
                                 }
@@ -294,7 +297,6 @@ class MainActivity : AppCompatActivity() {
         intent.setData(uri)
         startActivity(intent)
         // finishAffinity();
-
     }
 
     private fun showDialogOK(okListener: DialogInterface.OnClickListener) {
@@ -305,5 +307,4 @@ class MainActivity : AppCompatActivity() {
             .create()
             .show()
     }
-
 }

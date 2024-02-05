@@ -1,4 +1,4 @@
-package com.example.whispdroid
+package com.leonm.voiceversa
 
 import android.content.Context
 import com.google.gson.Gson
@@ -7,7 +7,6 @@ import java.io.File
 import java.io.IOException
 
 class JsonManager(private val context: Context) {
-
     private val gson = Gson()
 
     fun loadTranscriptions(): List<Transcription> {
