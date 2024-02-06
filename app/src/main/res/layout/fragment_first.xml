@@ -30,24 +30,32 @@
                 android:hint="@string/choose_a_file"
                 android:inputType="text"
                 android:textAlignment="center"
-                android:autofillHints="@string/todo" />
+                android:autofillHints="@string/todo"
+                />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonChooseFile"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/choose_file" />
+                android:text="@string/choose_file"
+                style="?attr/materialIconButtonStyle"
+                />
+
 
         </LinearLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonStartTranscription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:text="@string/start" />
+            android:layout_weight="1"
+            android:text="@string/start"
+            style="?attr/materialIconButtonStyle"
+            />
+
 
     </LinearLayout>
 

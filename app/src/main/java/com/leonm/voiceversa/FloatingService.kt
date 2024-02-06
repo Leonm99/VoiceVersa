@@ -1,10 +1,11 @@
-package com.example.whispdroid
+package com.leonm.voiceversa
 
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -15,11 +16,6 @@ import android.os.Looper
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationCompat
-import com.aallam.openai.api.chat.ChatCompletion
-import com.aallam.openai.api.chat.ChatCompletionRequest
-import com.aallam.openai.api.chat.ChatMessage
-import com.aallam.openai.api.chat.ChatRole
-import com.aallam.openai.api.model.ModelId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,7 +31,7 @@ private const val NOTIFICATION_CHANNEL_GENERAL = "quicknote_general"
 private const val CODE_FOREGROUND_SERVICE = 1
 private const val CODE_EXIT_INTENT = 2
 private const val CODE_NOTE_INTENT = 3
-private val whisperHandler = WhisperHandler()
+private val whisperHandler = OpenAiHandler()
 private val transcriptions = mutableListOf<Transcription>()
 
 
@@ -62,7 +58,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         }
 
 
-        window = Window(this, this,coroutineContext)
+        window = Window(this, this,this,coroutineContext)
 
         val command = intent?.getStringExtra(INTENT_COMMAND)
         val localPath = intent?.getStringExtra("PATH")
@@ -74,12 +70,12 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                 try {
                     val audioFileUri: Uri? = localPath?.let { Uri.fromFile(File(it)) }
                     val convertedUri = audioFileUri?.let {
-                        WhisperHandler().convertAudio(this@FloatingService, it, "mp3")
+                        OpenAiHandler().convertAudio(this@FloatingService, it, "mp3")
                     }
 
                     if (convertedUri != null) {
-                        val openAIResult = WhisperHandler().callOpenAI() ?: return@launch
-                        val whisperResult = WhisperHandler().whisper(
+                        val openAIResult = OpenAiHandler().callOpenAI() ?: return@launch
+                        val whisperResult = OpenAiHandler().whisper(
                             openAIResult,
                             convertedUri.path ?: return@launch
                         ).text
@@ -120,8 +116,9 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun stopService() {
-        stopForeground(true)
+     fun stopService() {
+    Log.d("FloatingService", "stopService")
+        //stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
@@ -196,6 +193,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
     }
 
     override fun onContentButtonClicked() {
+        
         if (result.isNotEmpty()) {
 
             transcriptions.clear()

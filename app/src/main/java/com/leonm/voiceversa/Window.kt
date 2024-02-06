@@ -1,5 +1,7 @@
 package com.leonm.voiceversa
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
@@ -12,7 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
-import android.widget.ImageButton
+import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -31,8 +33,28 @@ interface WindowCallback {
 class Window(
     private val context: Context,
     private val callback: WindowCallback,
+    private val floatingService: FloatingService,
+
     override val coroutineContext: CoroutineContext,
 ) : CoroutineScope {
+
+    private lateinit var textView: TextView
+    private lateinit var progressBar: ProgressBar
+    private lateinit var cardView: CardView
+    private lateinit var contentContainer: FrameLayout
+    private lateinit var contentButton: Button
+    private lateinit var summarizeButton: Button
+    private var newText: String = ""
+    private var charIndex: Int = 0
+    private val handler = Handler(Looper.getMainLooper())
+    private var metrix = Pair(0, 0)
+
+    private var continueTextAnimation: Boolean = true
+    private var originalText: String = ""
+
+    private var isOpen: Boolean = false
+
+
     private val windowManager: WindowManager =
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val layoutInflater: LayoutInflater =
@@ -53,19 +75,7 @@ class Window(
             format = PixelFormat.TRANSLUCENT
         }
 
-    private lateinit var textView: TextView
-    private lateinit var progressBar: ProgressBar
-    private lateinit var cardView: CardView
-    private lateinit var contentContainer: FrameLayout
-    private lateinit var contentButton: ImageButton
-    private lateinit var summarizeButton: ImageButton
-    private var newText: String = ""
-    private var charIndex: Int = 0
-    private val handler = Handler(Looper.getMainLooper())
-    private var metrix = Pair(0, 0)
 
-    private var continueTextAnimation: Boolean = true
-    private var originalText: String = ""
 
     private fun getCurrentDisplayMetrics(): Any {
         val width: Int
@@ -105,7 +115,7 @@ class Window(
         progressBar = rootView.findViewById(R.id.loading)
         cardView = rootView.findViewById(R.id.cardView)
         contentContainer = rootView.findViewById(R.id.contentContainer)
-        rootView.findViewById<View>(R.id.window_close).setOnClickListener { close() }
+        rootView.findViewById<View>(R.id.window_close).setOnClickListener { close()  }
         contentButton = rootView.findViewById(R.id.content_button)
         summarizeButton = rootView.findViewById(R.id.summarize_content)
 
@@ -113,20 +123,6 @@ class Window(
         rootView.alpha = 0f
         cardView.translationY = metrix.second.toFloat()
 
-        // Apply the fade-in and slide-up animation
-        rootView.animate()
-            .alpha(1f)
-            .setDuration(500)
-            .setStartDelay(500)
-            .withEndAction {
-                Log.d("Window", "Animation complete")
-            }.start()
-
-        cardView.animate()
-            .translationY(0f)
-            .setDuration(500)
-            .setStartDelay(500)
-            .start()
 
         // Set the touch listeners
         textView.setOnClickListener {
@@ -143,16 +139,18 @@ class Window(
 
         contentButton.setOnClickListener {
             // Handle the content button click
+            contentButton.isActivated = false
             callback.onContentButtonClicked()
             if (newText.isNotEmpty()) {
                 Toast.makeText(context, "Transcription saved!", Toast.LENGTH_LONG).show()
                 close()
+
             }
         }
 
         summarizeButton.setOnClickListener {
             // Handle the summarize button click
-            summarizeButton.isClickable = false
+            summarizeButton.isActivated = false
 
             launch(Dispatchers.IO) {
                 val openAI = OpenAiHandler().callOpenAI() ?: return@launch
@@ -170,6 +168,7 @@ class Window(
     }
 
     init {
+
         initWindowParams()
         initWindow()
     }
@@ -177,35 +176,66 @@ class Window(
     fun open() {
         Log.d("Window", "Opening window")
         try {
-            windowManager.addView(rootView, windowParams)
+            if (!isOpen) {
+                isOpen = true
+                // Apply the fade-in and slide-up animation
+                rootView.animate()
+                    .alpha(1f)
+                    .setDuration(500)
+                    .setStartDelay(500)
+                    .withEndAction {
+                        Log.d("Window", "Animation complete")
+                    }.start()
+
+                cardView.animate()
+                    .translationY(0f)
+                    .setDuration(500)
+                    .setStartDelay(500)
+                    .start()
+
+                windowManager.addView(rootView, windowParams)
+            }
         } catch (e: Exception) {
             // Handle exception for production, show a warning to the user
             e.printStackTrace()
         }
     }
 
-    fun close() {
-        rootView.animate()
-            .alpha(1f)
-            .setDuration(500)
-            .setStartDelay(500)
-            .withEndAction {
-                Log.d("Window", "Animation complete")
-            }.start()
-
-        cardView.animate()
-            .translationY(0f)
-            .setDuration(500)
-            .setStartDelay(500)
-            .start()
+    private fun close() {
         Log.d("Window", "Closing window")
         try {
-            windowManager.removeView(rootView)
+            if (isOpen) {
+                isOpen = false
+
+                // Create an AnimatorListener to listen for animation completion
+                val animatorListener = object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        Log.d("Window", "Animation complete")
+                        windowManager.removeView(rootView)
+                        floatingService.stopService()
+                    }
+                }
+
+                // Apply the fade-in and slide-up animation
+                rootView.animate()
+                    .alpha(0f)
+                    .setDuration(500)
+                    .setStartDelay(500)
+                    .setListener(animatorListener) // Set the AnimatorListener
+                    .start()
+
+                cardView.animate()
+                    .translationY(metrix.second.toFloat())
+                    .setDuration(500)
+                    .setStartDelay(500)
+                    .start()
+            }
         } catch (e: Exception) {
             // Handle exception for production, show a warning to the user
             e.printStackTrace()
         }
     }
+
 
     fun updateTextViewWithSlightlyUnevenTypingEffect(newText: String) {
         progressBar.visibility = View.GONE

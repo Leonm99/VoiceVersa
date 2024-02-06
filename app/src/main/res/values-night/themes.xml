@@ -1,6 +1,6 @@
-<resources>
 
-    <style name="AppTheme" parent="Theme.Material3.Dark.NoActionBar">
+<resources>
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_dark_primary</item>
         <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_dark_primaryContainer</item>
@@ -29,17 +29,13 @@
         <item name="colorPrimaryInverse">@color/md_theme_dark_inversePrimary</item>
     </style>
 
-    <style name="MyCardView" parent="Theme.MaterialComponents.Light">
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.MaterialCardView.Cut
-        </item>
+    <style name="MyCardView" parent="AppTheme">
+
+        <item name="cardBackgroundColor">@color/md_theme_dark_secondaryContainer</item>
+        <item name="android:textColor" >@color/md_theme_dark_onSecondaryContainer</item>
     </style>
 
 
-    <style name="ShapeAppearanceOverlay.MaterialCardView.Cut" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSizeTopRight">30dp</item>
-        <item name="cornerSizeTopLeft">30dp</item>
-        <item name="cornerSizeBottomRight">0dp</item>
-        <item name="cornerSizeBottomLeft">0dp</item>
-    </style>
+
+
 </resources>
