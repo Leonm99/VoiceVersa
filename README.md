@@ -1,7 +1,7 @@
 
 
 
-# WhispDroid
+# VoiceVersa
 ![Logo](https://github.com/Leonm99/WhispDroid/blob/master/app/src/main/res/drawable/icon_round.png?raw=true)
 
 Android Transcription App  
