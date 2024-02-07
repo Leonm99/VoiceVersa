@@ -3,6 +3,7 @@ package com.leonm.voiceversa
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import java.text.SimpleDateFormat
@@ -21,9 +22,13 @@ data class Transcription(
     }
 }
 
-class TranscriptionAdapter(private val transcriptions: List<Transcription>) :
-    RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
-    // Sort the transcriptions by timestamp in descending order
+class TranscriptionAdapter(
+    private val transcriptions: MutableList<Transcription>,
+    private val onDeleteClickListener: OnDeleteClickListener,
+) : RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
+    interface OnDeleteClickListener {
+        fun onDeleteClick(transcription: Transcription)
+    }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -41,11 +46,17 @@ class TranscriptionAdapter(private val transcriptions: List<Transcription>) :
     ) {
         val transcription = transcriptions[position]
         holder.bind(transcription)
+
+        // Set the click listener for the delete button
+        holder.deleteButton.setOnClickListener {
+            onDeleteClickListener.onDeleteClick(transcription)
+        }
     }
 
     override fun getItemCount(): Int = transcriptions.size
 
-    class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
         private val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
 

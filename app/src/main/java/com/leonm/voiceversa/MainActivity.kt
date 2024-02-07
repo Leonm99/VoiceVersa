@@ -90,11 +90,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    val REQUEST_ID_MULTIPLE_PERMISSIONS = 1
+    @Suppress("ktlint:standard:property-naming")
+    private val REQUEST_ID_MULTIPLE_PERMISSIONS = 1
 
     private fun checkAndRequestPermissions(): Boolean {
-        val permissionReadExternalStorage: Int
-        permissionReadExternalStorage =
+        val permissionReadExternalStorage: Int =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ContextCompat.checkSelfPermission(
                     this,
@@ -106,8 +106,7 @@ class MainActivity : AppCompatActivity() {
                     permission.READ_EXTERNAL_STORAGE,
                 )
             }
-        val permissionWriteExtarnalStorage: Int
-        permissionWriteExtarnalStorage =
+        val permissionWriteExternalStorage: Int =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ContextCompat.checkSelfPermission(
                     this,
@@ -120,7 +119,7 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         val listPermissionsNeeded: MutableList<String> = ArrayList()
-        if (permissionWriteExtarnalStorage != PackageManager.PERMISSION_GRANTED) {
+        if (permissionWriteExternalStorage != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 listPermissionsNeeded.add(
                     permission.READ_MEDIA_AUDIO,
@@ -156,7 +155,7 @@ class MainActivity : AppCompatActivity() {
                 listPermissionsNeeded.add(permission.POST_NOTIFICATIONS)
             }
         }
-        if (!listPermissionsNeeded.isEmpty()) {
+        if (listPermissionsNeeded.isNotEmpty()) {
             ActivityCompat.requestPermissions(
                 this,
                 listPermissionsNeeded.toTypedArray<String>(),
@@ -234,7 +233,7 @@ class MainActivity : AppCompatActivity() {
                                 showDialogOK { dialog, which ->
                                     when (which) {
                                         DialogInterface.BUTTON_POSITIVE -> checkAndRequestPermissions()
-                                        DialogInterface.BUTTON_NEGATIVE -> // proceed with logic by disabling the related features or quit the app.
+                                        DialogInterface.BUTTON_NEGATIVE ->
                                             Toast.makeText(
                                                 this@MainActivity,
                                                 "Necessary Permissions required for this app",
@@ -269,7 +268,7 @@ class MainActivity : AppCompatActivity() {
                                 showDialogOK { dialog, which ->
                                     when (which) {
                                         DialogInterface.BUTTON_POSITIVE -> checkAndRequestPermissions()
-                                        DialogInterface.BUTTON_NEGATIVE -> // proceed with logic by disabling the related features or quit the app.
+                                        DialogInterface.BUTTON_NEGATIVE ->
                                             Toast.makeText(
                                                 this@MainActivity,
                                                 "Necessary Permissions required for this app",

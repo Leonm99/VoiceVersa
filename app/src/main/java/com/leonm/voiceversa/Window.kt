@@ -13,8 +13,8 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -34,10 +34,8 @@ class Window(
     private val context: Context,
     private val callback: WindowCallback,
     private val floatingService: FloatingService,
-
     override val coroutineContext: CoroutineContext,
 ) : CoroutineScope {
-
     private lateinit var textView: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var cardView: CardView
@@ -53,7 +51,6 @@ class Window(
     private var originalText: String = ""
 
     private var isOpen: Boolean = false
-
 
     private val windowManager: WindowManager =
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -74,8 +71,6 @@ class Window(
             )
             format = PixelFormat.TRANSLUCENT
         }
-
-
 
     private fun getCurrentDisplayMetrics(): Any {
         val width: Int
@@ -114,8 +109,8 @@ class Window(
         textView = rootView.findViewById(R.id.result_text)
         progressBar = rootView.findViewById(R.id.loading)
         cardView = rootView.findViewById(R.id.cardView)
-        contentContainer = rootView.findViewById(R.id.contentContainer)
-        rootView.findViewById<View>(R.id.window_close).setOnClickListener { close()  }
+
+        rootView.findViewById<View>(R.id.window_close).setOnClickListener { close() }
         contentButton = rootView.findViewById(R.id.content_button)
         summarizeButton = rootView.findViewById(R.id.summarize_content)
 
@@ -123,13 +118,8 @@ class Window(
         rootView.alpha = 0f
         cardView.translationY = metrix.second.toFloat()
 
-
         // Set the touch listeners
         textView.setOnClickListener {
-            stopTextAnimation()
-        }
-
-        contentContainer.setOnClickListener {
             stopTextAnimation()
         }
 
@@ -144,7 +134,6 @@ class Window(
             if (newText.isNotEmpty()) {
                 Toast.makeText(context, "Transcription saved!", Toast.LENGTH_LONG).show()
                 close()
-
             }
         }
 
@@ -208,13 +197,14 @@ class Window(
                 isOpen = false
 
                 // Create an AnimatorListener to listen for animation completion
-                val animatorListener = object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        Log.d("Window", "Animation complete")
-                        windowManager.removeView(rootView)
-                        floatingService.stopService()
+                val animatorListener =
+                    object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            Log.d("Window", "Animation complete")
+                            windowManager.removeView(rootView)
+                            floatingService.stopService()
+                        }
                     }
-                }
 
                 // Apply the fade-in and slide-up animation
                 rootView.animate()
@@ -235,7 +225,6 @@ class Window(
             e.printStackTrace()
         }
     }
-
 
     fun updateTextViewWithSlightlyUnevenTypingEffect(newText: String) {
         progressBar.visibility = View.GONE

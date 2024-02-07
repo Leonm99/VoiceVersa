@@ -36,6 +36,30 @@
         <item name="android:textColor" >@color/md_theme_light_onSecondaryContainer</item>
     </style>
 
+    <style name="MyBackground" parent="AppTheme">
+        <item name="android:background">@color/md_theme_light_surface</item>
+    </style>
+
+    <style name="MyFab" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="backgroundTint">@color/md_theme_light_primaryContainer</item>
+        <item name="tint">@color/md_theme_light_onPrimaryContainer</item>
+    </style>
+
+    <style name="MyAppBar" parent="Widget.MaterialComponents.AppBarLayout.Primary">
+        <item name="background">@color/md_theme_light_surface</item>
+        <item name="android:background">@color/md_theme_light_surface</item>
+    </style>
+
+    <style name="MyButton" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/md_theme_light_primaryContainer</item>
+        <item name="tint">@color/md_theme_light_onPrimaryContainer</item>
+    </style>
+
+    <style name="MyProgressBar" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:progressTint">@color/md_theme_light_onSecondaryContainer</item>
+        <item name="android:indeterminateTint">@color/md_theme_light_primaryContainer</item>
+    </style>
+
 
 
 

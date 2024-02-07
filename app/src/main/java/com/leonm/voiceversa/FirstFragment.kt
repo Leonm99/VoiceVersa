@@ -9,7 +9,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
-import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -17,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.leonm.voiceversa.databinding.FragmentFirstBinding
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -26,11 +26,10 @@ import java.io.IOException
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
-class FirstFragment : Fragment() {
+class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     @Suppress("ktlint:standard:property-naming")
     private var _binding: FragmentFirstBinding? = null
     private val binding get() = _binding!!
-    private var localPath: String? = null
     private val openAiHandler = OpenAiHandler()
     private val transcriptions = mutableListOf<Transcription>()
     private lateinit var transcriptionAdapter: TranscriptionAdapter
@@ -63,24 +62,26 @@ class FirstFragment : Fragment() {
         _binding = null
     }
 
-    private fun setupClickListeners() {
-        binding.buttonStartTranscription.setOnClickListener {
-            lifecycleScope.launch {
-                try {
-                    showLoading(true)
-                    val result = performWhisperTranscription()
-                } catch (e: Exception) {
-                    handleError(e)
-                } finally {
-                    showLoading(false)
-                }
-            }
-        }
+    override fun onDeleteClick(transcription: Transcription) {
+        // Remove the transcription from the list
+        transcriptions.remove(transcription)
+        // Notify the adapter of the change
+        transcriptionAdapter.notifyDataSetChanged()
+        // Save the updated list to the JSON file
+        jsonManager.saveTranscriptions(transcriptions)
+    }
 
-        binding.buttonChooseFile.setOnClickListener {
+    private fun setupClickListeners() {
+        binding.fab.setOnClickListener {
             lifecycleScope.launch {
                 try {
-                    openFileChooser()
+                    // Launch a coroutine to perform openFileChooser
+                    val fileChooserDeferred = async { openFileChooser() }
+
+                    // Wait for openFileChooser to finish
+                    fileChooserDeferred.await()
+
+                    // Now that openFileChooser is done, proceed with performWhisperTranscription
                 } catch (e: Exception) {
                     handleError(e)
                 }
@@ -102,30 +103,17 @@ class FirstFragment : Fragment() {
             // Load transcriptions from the JSON file
             transcriptions.addAll(jsonManager.loadTranscriptions())
             transcriptions.sortedByDescending { it.timestamp }
-            transcriptionAdapter = TranscriptionAdapter(transcriptions)
+            transcriptionAdapter = TranscriptionAdapter(transcriptions, this)
             recyclerView.adapter = transcriptionAdapter
             recyclerView.layoutManager = LinearLayoutManager(requireContext())
         }
     }
 
-    private suspend fun performWhisperTranscription() {
-        try {
-            showLoading(true)
-            val result = openAiHandler.whisper(openAiHandler.callOpenAI()!!, localPath!!).text
-            saveTranscriptionToFile(result)
-            updateOutputText()
-        } catch (e: Exception) {
-            handleError(e)
-        } finally {
-            showLoading(false)
-        }
-    }
-
     private suspend fun updateOutputText() {
         withContext(Dispatchers.Main) {
+            transcriptionAdapter.notifyDataSetChanged()
         }
         // Notify the adapter that data set has changed
-        transcriptionAdapter.notifyDataSetChanged()
     }
 
     private fun saveTranscriptionToFile(content: String) {
@@ -135,6 +123,27 @@ class FirstFragment : Fragment() {
 
         transcriptions.addAll(jsonManager.loadTranscriptions())
         jsonManager.saveTranscriptions(transcriptions) // Replace with the actual path
+    }
+
+    fun reloadData() {
+        transcriptions.clear()
+        transcriptions.addAll(jsonManager.loadTranscriptions())
+        transcriptions.sortedByDescending { it.timestamp }
+        Log.d("transcriptions", "yeah we get here")
+        transcriptionAdapter.notifyDataSetChanged()
+    }
+
+    private suspend fun performWhisperTranscription(path: String?) {
+        try {
+            showLoading(true)
+            val result = openAiHandler.whisper(openAiHandler.callOpenAI()!!, path!!).text
+            saveTranscriptionToFile(result)
+            updateOutputText()
+        } catch (e: Exception) {
+            handleError(e)
+        } finally {
+            showLoading(false)
+        }
     }
 
     private fun handleError(exception: Exception) {
@@ -159,8 +168,10 @@ class FirstFragment : Fragment() {
         val selectedFileUri = data?.data
         if (selectedFileUri != null) {
             val savedFilePath = saveFileToInternalStorage(selectedFileUri)
-            updateFilePathText(savedFilePath)
-            localPath = savedFilePath
+
+            lifecycleScope.launch {
+                performWhisperTranscription(savedFilePath)
+            }
         }
     }
 
@@ -190,20 +201,7 @@ class FirstFragment : Fragment() {
         return "." + mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri!!))
     }
 
-    private fun updateFilePathText(filePath: String?) {
-        val fileText = requireView().findViewById<View>(R.id.pathTextBox) as EditText
-        fileText.setText(filePath)
-    }
-
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-    }
-
-    fun reloadData() {
-        transcriptions.clear()
-        transcriptions.addAll(jsonManager.loadTranscriptions())
-        transcriptions.sortedByDescending { it.timestamp }
-        Log.d("transcriptions", "yeah we get here")
-        transcriptionAdapter.notifyDataSetChanged()
     }
 }

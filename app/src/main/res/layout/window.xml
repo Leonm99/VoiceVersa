@@ -22,10 +22,11 @@
         android:layout_height="wrap_content"
 
         android:layout_gravity="bottom"
+        android:layout_marginTop="10dp"
         android:minHeight="220dp"
+        android:theme="@style/AppTheme"
         app:cardCornerRadius="30dp"
-        app:cardElevation="0dp"
-        android:theme="@style/AppTheme">
+        app:cardElevation="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -37,11 +38,13 @@
                 android:id="@+id/contentContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_margin="17dp"
+                android:layout_weight="1"
                 android:minHeight="220dp">
 
                 <ProgressBar
                     android:id="@+id/loading"
-                    style="?android:attr/progressBarStyle"
+                    style="@style/MyProgressBar"
                     android:layout_width="451dp"
                     android:layout_height="102dp"
                     android:layout_gravity="center"
@@ -52,7 +55,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
 
-                    android:padding="10dp">
+                    >
 
                     <TextView
                         android:id="@+id/result_text"
@@ -62,8 +65,8 @@
                         android:fontFamily="@font/roboto"
                         android:textAlignment="viewStart"
                         android:textColor="?attr/colorOnSecondaryContainer"
-                        android:textSize="16sp"
-                        />
+                        android:textIsSelectable="true"
+                        android:textSize="16sp" />
                     <!-- android:shadowColor="#20000000"
                     android:shadowDx="4"
                     android:shadowDy="4"
@@ -75,6 +78,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_weight="1"
                 android:gravity="top"
                 android:orientation="horizontal">
 
@@ -88,7 +92,7 @@
                     app:icon="@drawable/summarize"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    app:iconTint="?attr/colorOnSecondaryContainer"/>
+                    app:iconTint="?attr/colorOnSecondaryContainer" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/content_button"
@@ -97,10 +101,10 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="?attr/selectableItemBackgroundBorderless"
+                    app:icon="@drawable/save"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    app:icon="@drawable/save"
-                    app:iconTint="?attr/colorOnSecondaryContainer"/>
+                    app:iconTint="?attr/colorOnSecondaryContainer" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/window_close"

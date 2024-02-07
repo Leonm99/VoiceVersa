@@ -4,16 +4,33 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
+    style = "@style/MyCardView"
 
     app:cardCornerRadius="20dp"
     app:cardElevation="5dp">
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/deleteButton"
+        style="?attr/materialIconButtonStyle"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="end"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:onClick="onDeleteButtonClicked"
+        app:icon="@drawable/delete"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconTint="?attr/colorOnSecondaryContainer" />
+
+
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
-
+        <!-- Button for deleting the transcription -->
         <TextView
             android:id="@+id/textTranscriptionDate"
             android:layout_width="wrap_content"

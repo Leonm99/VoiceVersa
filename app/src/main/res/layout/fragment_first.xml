@@ -1,69 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:textAlignment="center"
-    tools:context=".FirstFragment">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:orientation="vertical">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_horizontal|center_vertical"
-            android:orientation="horizontal"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp">
-
-            <EditText
-                android:id="@+id/pathTextBox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:ems="10"
-                android:hint="@string/choose_a_file"
-                android:inputType="text"
-                android:textAlignment="center"
-                android:autofillHints="@string/todo"
-                />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonChooseFile"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/choose_file"
-                style="?attr/materialIconButtonStyle"
-                />
-
-
-        </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonStartTranscription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_weight="1"
-            android:text="@string/start"
-            style="?attr/materialIconButtonStyle"
-            />
-
-
-    </LinearLayout>
+    tools:context=".FirstFragment"
+    style="@style/MyBackground">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textAlignment="center"
-        tools:context=".FirstFragment">
+        android:textAlignment="center">
 
         <!-- Your other views here -->
 
@@ -75,7 +24,7 @@
 
         <ProgressBar
             android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyle"
+            style="@style/MyProgressBar"
             android:layout_width="119dp"
             android:layout_height="123dp"
             android:layout_centerInParent="true"
@@ -83,5 +32,13 @@
 
     </RelativeLayout>
 
-
-</LinearLayout>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:srcCompat="@android:drawable/ic_input_add"
+        style="@style/MyFab"/>
+</FrameLayout>
