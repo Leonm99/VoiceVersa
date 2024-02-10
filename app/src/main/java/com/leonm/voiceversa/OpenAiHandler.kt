@@ -45,6 +45,58 @@ class OpenAiHandler {
         return openAI.transcription(transcriptionRequest)
     }
 
+    suspend fun summarize(
+        openai: OpenAI,
+        userText: String = "",
+    ): ChatCompletion {
+        val chatCompletionRequest =
+
+            ChatCompletionRequest(
+                model = ModelId("gpt-3.5-turbo-0125"),
+                messages =
+                    listOf(
+                        ChatMessage(
+                            role = ChatRole.System,
+                            content =
+                                "You will be provided with a transcription of a voice message," +
+                                    "and your task is to summarize it in the language its written in.",
+                        ),
+                        ChatMessage(
+                            role = ChatRole.User,
+                            content = userText,
+                        ),
+                    ),
+            )
+
+        return openai.chatCompletion(chatCompletionRequest)
+    }
+
+    suspend fun translate(
+        openai: OpenAI,
+        userText: String = "",
+    ): ChatCompletion {
+        val chatCompletionRequest =
+
+            ChatCompletionRequest(
+                model = ModelId("gpt-3.5-turbo-0125"),
+                messages =
+                    listOf(
+                        ChatMessage(
+                            role = ChatRole.System,
+                            content =
+                                "You will be provided with a transcription of a voice message, " +
+                                    "and your task is to translate it into english.",
+                        ),
+                        ChatMessage(
+                            role = ChatRole.User,
+                            content = userText,
+                        ),
+                    ),
+            )
+
+        return openai.chatCompletion(chatCompletionRequest)
+    }
+
     suspend fun convertAudio(
         context: Context,
         inputUri: Uri,
@@ -75,29 +127,5 @@ class OpenAiHandler {
             e.printStackTrace()
             null
         }
-    }
-
-    public suspend fun summarize(
-        openai: OpenAI,
-        userText: String = "",
-    ): ChatCompletion {
-        val chatCompletionRequest =
-
-            ChatCompletionRequest(
-                model = ModelId("gpt-3.5-turbo-0125"),
-                messages =
-                    listOf(
-                        ChatMessage(
-                            role = ChatRole.System,
-                            content = "Beschreibe folgenden text, gerne auch in stichpunkten.",
-                        ),
-                        ChatMessage(
-                            role = ChatRole.User,
-                            content = userText,
-                        ),
-                    ),
-            )
-
-        return openai.chatCompletion(chatCompletionRequest)
     }
 }

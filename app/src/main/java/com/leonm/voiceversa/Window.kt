@@ -2,6 +2,7 @@ package com.leonm.voiceversa
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
@@ -11,10 +12,10 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
-import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -39,9 +40,10 @@ class Window(
     private lateinit var textView: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var cardView: CardView
-    private lateinit var contentContainer: FrameLayout
     private lateinit var contentButton: Button
     private lateinit var summarizeButton: Button
+    private lateinit var translationButton: Button
+
     private var newText: String = ""
     private var charIndex: Int = 0
     private val handler = Handler(Looper.getMainLooper())
@@ -65,101 +67,108 @@ class Window(
             type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             flags = (
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                    or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                     or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                     or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
             )
             format = PixelFormat.TRANSLUCENT
         }
 
-    private fun getCurrentDisplayMetrics(): Any {
-        val width: Int
-        val height: Int
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val windowMetrics = windowManager.currentWindowMetrics
-            val bounds = windowMetrics.bounds
-            width = bounds.width()
-            height = bounds.height()
-        } else {
-            val dm = DisplayMetrics()
-            windowManager.defaultDisplay.getMetrics(dm)
-            width = dm.widthPixels
-            height = dm.heightPixels
-        }
-        metrix = Pair(width, height)
-        return metrix
-    }
-
-    private fun calculateSizeAndPosition(params: WindowManager.LayoutParams) {
-        val dm = getCurrentDisplayMetrics()
-        params.gravity = Gravity.TOP or Gravity.START
-        params.width = metrix.first
-        params.height = metrix.second
-        params.x = 0
-        params.y = 0
+    init {
+        initWindowParams()
+        initWindow()
     }
 
     private fun initWindowParams() {
-        calculateSizeAndPosition(windowParams)
+        getCurrentDisplayMetrics()
+        windowParams.gravity = Gravity.BOTTOM
+        windowParams.width = metrix.first
+        windowParams.height = WindowManager.LayoutParams.WRAP_CONTENT
+        windowParams.x = 0
+        windowParams.y = 0
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun initWindow() {
         Log.d("Window", "Initializing window")
         textView = rootView.findViewById(R.id.result_text)
         progressBar = rootView.findViewById(R.id.loading)
         cardView = rootView.findViewById(R.id.cardView)
-
+        rootView.setOnTouchListener { _, event ->
+            handleTouchEvent(event)
+        }
         rootView.findViewById<View>(R.id.window_close).setOnClickListener { close() }
         contentButton = rootView.findViewById(R.id.content_button)
         summarizeButton = rootView.findViewById(R.id.summarize_content)
+        translationButton = rootView.findViewById(R.id.translate_content)
+
+        disableButtons()
 
         // Set initial properties for fade-in and slide-up
         rootView.alpha = 0f
         cardView.translationY = metrix.second.toFloat()
 
         // Set the touch listeners
-        textView.setOnClickListener {
-            stopTextAnimation()
-        }
+        textView.setOnClickListener { stopTextAnimation() }
+        progressBar.setOnClickListener { stopTextAnimation() }
 
-        progressBar.setOnClickListener {
-            stopTextAnimation()
+        cardView.setOnTouchListener { _, event ->
+            handleTouchEvent(event)
         }
 
         contentButton.setOnClickListener {
-            // Handle the content button click
-            contentButton.isActivated = false
-            callback.onContentButtonClicked()
-            if (newText.isNotEmpty()) {
-                Toast.makeText(context, "Transcription saved!", Toast.LENGTH_LONG).show()
-                close()
-            }
+            contentButtonClicked()
         }
 
         summarizeButton.setOnClickListener {
-            // Handle the summarize button click
-            summarizeButton.isActivated = false
+            summarizeButtonClicked()
+        }
 
-            launch(Dispatchers.IO) {
-                val openAI = OpenAiHandler().callOpenAI() ?: return@launch
-                val chatCompletion = OpenAiHandler().summarize(openAI, newText)
-                val summary = chatCompletion.choices[0].message.content
-                val result = summary.toString()
-                Log.d("Summary", result)
-
-                launch(Dispatchers.Main) {
-                    updateTextViewWithSlightlyUnevenTypingEffect(result)
-                }
-            }
-            Toast.makeText(context, "Transcription saved!", Toast.LENGTH_LONG).show()
+        translationButton.setOnClickListener {
+            translationButtonClicked()
         }
     }
 
-    init {
+    private fun contentButtonClicked() {
+        contentButton.isClickable = false
+        callback.onContentButtonClicked()
+        if (originalText.isNotEmpty()) {
+            showToast("Transcription saved!")
+            close()
+        }
+    }
 
-        initWindowParams()
-        initWindow()
+    private fun summarizeButtonClicked() {
+        summarizeButton.isClickable = false
+        stopTextAnimation()
+        progressBar.visibility = View.VISIBLE
+        launch(Dispatchers.IO) {
+            val openAI = OpenAiHandler().callOpenAI() ?: return@launch
+            val chatCompletion = OpenAiHandler().summarize(openAI, originalText)
+            val summary = chatCompletion.choices[0].message.content
+            val result = summary.toString()
+            Log.d("Summary", result)
+
+            launch(Dispatchers.Main) {
+                updateTextViewWithSlightlyUnevenTypingEffect(result)
+            }
+        }
+    }
+
+    private fun translationButtonClicked() {
+        translationButton.isClickable = false
+        stopTextAnimation()
+        progressBar.visibility = View.VISIBLE
+        launch(Dispatchers.IO) {
+            val openAI = OpenAiHandler().callOpenAI() ?: return@launch
+            val chatCompletion = OpenAiHandler().translate(openAI, originalText)
+            val translatedText = chatCompletion.choices[0].message.content
+            val result = translatedText.toString()
+            Log.d("Translation", result)
+
+            launch(Dispatchers.Main) {
+                updateTextViewWithSlightlyUnevenTypingEffect(result)
+            }
+        }
     }
 
     fun open() {
@@ -185,8 +194,7 @@ class Window(
                 windowManager.addView(rootView, windowParams)
             }
         } catch (e: Exception) {
-            // Handle exception for production, show a warning to the user
-            e.printStackTrace()
+            handleException(e)
         }
     }
 
@@ -195,7 +203,6 @@ class Window(
         try {
             if (isOpen) {
                 isOpen = false
-
                 // Create an AnimatorListener to listen for animation completion
                 val animatorListener =
                     object : AnimatorListenerAdapter() {
@@ -211,7 +218,7 @@ class Window(
                     .alpha(0f)
                     .setDuration(500)
                     .setStartDelay(500)
-                    .setListener(animatorListener) // Set the AnimatorListener
+                    .setListener(animatorListener)
                     .start()
 
                 cardView.animate()
@@ -221,14 +228,13 @@ class Window(
                     .start()
             }
         } catch (e: Exception) {
-            // Handle exception for production, show a warning to the user
-            e.printStackTrace()
+            handleException(e)
         }
     }
 
     fun updateTextViewWithSlightlyUnevenTypingEffect(newText: String) {
         progressBar.visibility = View.GONE
-        this.originalText = newText
+        originalText = newText
         this.newText = ""
         charIndex = 0
         continueTextAnimation = true
@@ -257,8 +263,76 @@ class Window(
         )
     }
 
-    fun stopTextAnimation() {
+    private fun stopTextAnimation() {
         continueTextAnimation = false
         textView.text = originalText
+    }
+
+    private fun getCurrentDisplayMetrics() {
+        val width: Int
+        val height: Int
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val windowMetrics = windowManager.currentWindowMetrics
+            val bounds = windowMetrics.bounds
+            width = bounds.width()
+            height = bounds.height()
+        } else {
+            val dm = DisplayMetrics()
+            windowManager.defaultDisplay.getMetrics(dm)
+            width = dm.widthPixels
+            height = dm.heightPixels
+        }
+        metrix = Pair(width, height)
+    }
+
+    private fun disableButtons() {
+        contentButton.isClickable = false
+        summarizeButton.isClickable = false
+        translationButton.isClickable = false
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun handleException(e: Exception) {
+        // Handle exception for production, show a warning to the user
+        e.printStackTrace()
+    }
+
+    fun enableButtons() {
+        contentButton.isClickable = true
+        summarizeButton.isClickable = true
+        translationButton.isClickable = true
+    }
+
+    private fun handleTouchEvent(event: MotionEvent): Boolean {
+        // Check if the touch event is within the CardView's bounds
+        if (isWithinCardViewBounds(event)) {
+            Log.d("Window", "Touch event within the CardView")
+            // Handle touch event within the CardView
+            // Return true to indicate that the event has been consumed
+            return true
+        } else {
+            Log.d("Window", "Touch event outside the CardView")
+            // Touch event is outside the CardView, pass it through
+            // Return false to allow the event to propagate to the underlying app
+            return false
+        }
+    }
+
+    private fun isWithinCardViewBounds(event: MotionEvent): Boolean {
+        // Check if the touch event coordinates are within the CardView's bounds
+        val cardViewLocation = IntArray(2)
+        cardView.getLocationOnScreen(cardViewLocation)
+        val cardViewX = cardViewLocation[0]
+        val cardViewY = cardViewLocation[1]
+
+        val x = event.rawX.toInt()
+        val y = event.rawY.toInt()
+
+        return x >= cardViewX && x <= cardViewX + cardView.width &&
+            y >= cardViewY && y <= cardViewY + cardView.height
     }
 }
