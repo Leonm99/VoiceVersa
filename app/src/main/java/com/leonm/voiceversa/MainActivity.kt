@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
             checkAndRequestPermissions()
         }
 
-        // ... rest of body of onCreateView() ...
+
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -48,8 +48,11 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+
         if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
             AppCompatDelegate.MODE_NIGHT_YES
+
+
         } else {
             AppCompatDelegate.MODE_NIGHT_NO
         }

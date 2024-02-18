@@ -1,18 +1,18 @@
 <!-- item_transcription.xml -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/MyCardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    style = "@style/MyCardView"
 
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginTop="8dp"
     app:cardCornerRadius="20dp"
-    app:cardElevation="5dp">
+    app:cardElevation="0dp">
 
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/deleteButton"
-        style="?attr/materialIconButtonStyle"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_gravity="end"
@@ -21,8 +21,7 @@
         app:icon="@drawable/delete"
         app:iconGravity="textStart"
         app:iconPadding="0dp"
-        app:iconTint="?attr/colorOnSecondaryContainer" />
-
+        app:iconTint="?attr/colorOnSecondaryContainer"/>
 
 
     <LinearLayout
