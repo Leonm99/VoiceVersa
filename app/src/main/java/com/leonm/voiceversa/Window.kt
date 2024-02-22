@@ -11,6 +11,7 @@ import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -90,12 +91,26 @@ class Window(
     @SuppressLint("ClickableViewAccessibility")
     private fun initWindow() {
         Log.d("Window", "Initializing window")
-        textView = rootView.findViewById(R.id.result_text)
-        progressBar = rootView.findViewById(R.id.loading)
-        cardView = rootView.findViewById(R.id.cardView)
+
+        rootView.isFocusableInTouchMode = true
+        rootView.requestFocus()
+        rootView.setOnKeyListener(
+            View.OnKeyListener { v, keyCode, event ->
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    close()
+                    return@OnKeyListener true
+                }
+                false
+            },
+        )
         rootView.setOnTouchListener { _, event ->
             handleTouchEvent(event)
         }
+
+        textView = rootView.findViewById(R.id.result_text)
+        progressBar = rootView.findViewById(R.id.loading)
+        cardView = rootView.findViewById(R.id.cardView)
+
         rootView.findViewById<View>(R.id.window_close).setOnClickListener { close() }
         contentButton = rootView.findViewById(R.id.content_button)
         summarizeButton = rootView.findViewById(R.id.summarize_content)
