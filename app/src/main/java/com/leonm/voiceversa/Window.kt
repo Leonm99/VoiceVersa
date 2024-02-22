@@ -13,10 +13,11 @@ import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
+
+import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -25,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
+
 
 interface WindowCallback {
     fun onContentButtonClicked()
@@ -59,7 +61,8 @@ class Window(
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val layoutInflater: LayoutInflater =
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-    private val rootView: View = layoutInflater.inflate(R.layout.window, null)
+    var wrapper: FrameLayout = FrameLayout(context)
+    var rootView: View = layoutInflater.inflate(R.layout.window, wrapper)
 
     private val windowParams =
         WindowManager.LayoutParams().apply {
@@ -68,8 +71,8 @@ class Window(
             type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             flags = (
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                    or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                    or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+
+
             )
             format = PixelFormat.TRANSLUCENT
         }
@@ -92,20 +95,20 @@ class Window(
     private fun initWindow() {
         Log.d("Window", "Initializing window")
 
-        rootView.isFocusableInTouchMode = true
-        rootView.requestFocus()
-        rootView.setOnKeyListener(
-            View.OnKeyListener { v, keyCode, event ->
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
+
+
+        wrapper = object : FrameLayout(context) {
+            override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+                return if (event.keyCode == KeyEvent.KEYCODE_BACK or KeyEvent.KEYCODE_HOME or KeyEvent.KEYCODE_APP_SWITCH) {
                     close()
-                    return@OnKeyListener true
-                }
-                false
-            },
-        )
-        rootView.setOnTouchListener { _, event ->
-            handleTouchEvent(event)
+                    true
+                } else super.dispatchKeyEvent(event)
+            }
+
+
         }
+
+        rootView = layoutInflater.inflate(R.layout.window, wrapper)
 
         textView = rootView.findViewById(R.id.result_text)
         progressBar = rootView.findViewById(R.id.loading)
@@ -116,6 +119,18 @@ class Window(
         summarizeButton = rootView.findViewById(R.id.summarize_content)
         translationButton = rootView.findViewById(R.id.translate_content)
 
+        rootView.isFocusableInTouchMode = true
+
+        rootView.requestFocus()
+        rootView.setOnKeyListener(
+            View.OnKeyListener { v, keyCode, event ->
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    close()
+                    return@OnKeyListener true
+                }
+                false
+            },
+        )
         disableButtons()
 
         // Set initial properties for fade-in and slide-up
@@ -126,9 +141,7 @@ class Window(
         textView.setOnClickListener { stopTextAnimation() }
         progressBar.setOnClickListener { stopTextAnimation() }
 
-        cardView.setOnTouchListener { _, event ->
-            handleTouchEvent(event)
-        }
+
 
         contentButton.setOnClickListener {
             contentButtonClicked()
@@ -151,6 +164,7 @@ class Window(
             close()
         }
     }
+
 
     private fun summarizeButtonClicked() {
         summarizeButton.isClickable = false
@@ -265,7 +279,7 @@ class Window(
                 override fun run() {
                     if (charIndex <= text.length && continueTextAnimation) {
                         newText = text.substring(0, charIndex)
-                        textView.text = newText
+                        textView.setText(newText)
 
                         charIndex++
                         val nextDelay =
@@ -280,7 +294,7 @@ class Window(
 
     private fun stopTextAnimation() {
         continueTextAnimation = false
-        textView.text = originalText
+        textView.setText(originalText)
     }
 
     private fun getCurrentDisplayMetrics() {
@@ -322,32 +336,7 @@ class Window(
         translationButton.isClickable = true
     }
 
-    private fun handleTouchEvent(event: MotionEvent): Boolean {
-        // Check if the touch event is within the CardView's bounds
-        if (isWithinCardViewBounds(event)) {
-            Log.d("Window", "Touch event within the CardView")
-            // Handle touch event within the CardView
-            // Return true to indicate that the event has been consumed
-            return true
-        } else {
-            Log.d("Window", "Touch event outside the CardView")
-            // Touch event is outside the CardView, pass it through
-            // Return false to allow the event to propagate to the underlying app
-            return false
-        }
-    }
 
-    private fun isWithinCardViewBounds(event: MotionEvent): Boolean {
-        // Check if the touch event coordinates are within the CardView's bounds
-        val cardViewLocation = IntArray(2)
-        cardView.getLocationOnScreen(cardViewLocation)
-        val cardViewX = cardViewLocation[0]
-        val cardViewY = cardViewLocation[1]
-
-        val x = event.rawX.toInt()
-        val y = event.rawY.toInt()
-
-        return x >= cardViewX && x <= cardViewX + cardView.width &&
-            y >= cardViewY && y <= cardViewY + cardView.height
-    }
 }
+
+
