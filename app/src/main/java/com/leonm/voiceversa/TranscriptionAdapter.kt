@@ -14,7 +14,7 @@ data class Transcription(
     val content: String,
     val timestamp: Long = System.currentTimeMillis(),
     val formattedDateTime: String = formatTimestamp(timestamp),
-    var expanded: Boolean = false // Track expansion state
+    var expanded: Boolean = false,
 ) {
     companion object {
         private fun formatTimestamp(timestamp: Long): String {
@@ -59,14 +59,19 @@ class TranscriptionAdapter(
             transcription.expanded = !transcription.expanded
             notifyItemChanged(position)
         }
+
+        holder.textTranscriptionContent.setOnClickListener {
+            transcription.expanded = !transcription.expanded
+            notifyItemChanged(position)
+        }
     }
 
     override fun getItemCount(): Int = transcriptions.size
 
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
-        private val contentLayout: LinearLayout = itemView.findViewById(R.id.contentLayout)
-        private val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
+        val contentLayout: LinearLayout = itemView.findViewById(R.id.contentLayout)
+        val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
 
         fun bind(transcription: Transcription) {

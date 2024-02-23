@@ -16,7 +16,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
-
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -26,7 +25,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
-
 
 interface WindowCallback {
     fun onContentButtonClicked()
@@ -72,7 +70,6 @@ class Window(
             flags = (
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 
-
             )
             format = PixelFormat.TRANSLUCENT
         }
@@ -95,18 +92,17 @@ class Window(
     private fun initWindow() {
         Log.d("Window", "Initializing window")
 
-
-
-        wrapper = object : FrameLayout(context) {
-            override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-                return if (event.keyCode == KeyEvent.KEYCODE_BACK or KeyEvent.KEYCODE_HOME or KeyEvent.KEYCODE_APP_SWITCH) {
-                    close()
-                    true
-                } else super.dispatchKeyEvent(event)
+        wrapper =
+            object : FrameLayout(context) {
+                override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+                    return if (event.keyCode == KeyEvent.KEYCODE_BACK or KeyEvent.KEYCODE_HOME or KeyEvent.KEYCODE_APP_SWITCH) {
+                        close()
+                        true
+                    } else {
+                        super.dispatchKeyEvent(event)
+                    }
+                }
             }
-
-
-        }
 
         rootView = layoutInflater.inflate(R.layout.window, wrapper)
 
@@ -131,6 +127,7 @@ class Window(
                 false
             },
         )
+
         disableButtons()
 
         // Set initial properties for fade-in and slide-up
@@ -140,8 +137,6 @@ class Window(
         // Set the touch listeners
         textView.setOnClickListener { stopTextAnimation() }
         progressBar.setOnClickListener { stopTextAnimation() }
-
-
 
         contentButton.setOnClickListener {
             contentButtonClicked()
@@ -164,7 +159,6 @@ class Window(
             close()
         }
     }
-
 
     private fun summarizeButtonClicked() {
         summarizeButton.isClickable = false
@@ -335,8 +329,4 @@ class Window(
         summarizeButton.isClickable = true
         translationButton.isClickable = true
     }
-
-
 }
-
-
