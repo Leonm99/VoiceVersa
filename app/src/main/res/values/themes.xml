@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/md_theme_light_primary</item>
         <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
@@ -60,6 +60,18 @@
         <item name="android:progressTint">@color/md_theme_light_onSecondaryContainer</item>
         <item name="android:indeterminateTint">@color/md_theme_light_onSecondaryContainer</item>
     </style>
+
+    <style name="headerTextStyle" parent="AppTheme">
+        <item name="android:layout_marginBottom">10dp</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">#6194EB</item>
+        <item name="android:padding">3dp</item>
+    </style>
+
+
 
 
 

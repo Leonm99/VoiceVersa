@@ -2,6 +2,7 @@ package com.leonm.voiceversa
 
 import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import com.aallam.openai.api.audio.Transcription
 import com.aallam.openai.api.audio.TranscriptionRequest
 import com.aallam.openai.api.chat.ChatCompletion
@@ -13,6 +14,9 @@ import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.arthenica.mobileffmpeg.FFmpeg
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import java.io.File
@@ -20,21 +24,29 @@ import kotlin.time.Duration.Companion.seconds
 
 class OpenAiHandler {
     private var openai: OpenAI? = null
+    private lateinit var sharedPreferencesManager: SharedPreferencesManager
+    public fun callOpenAI(context: Context): OpenAI? {
 
-    public fun callOpenAI(): OpenAI? {
+        sharedPreferencesManager = SharedPreferencesManager(context)
+        val key = sharedPreferencesManager.loadData<String>("ApiKey", "Default Value")
+       if(isValidApiKey(key)){
         openai =
             OpenAI(
-                token = "API_KEY_HERE",
+                token = key,
                 timeout = Timeout(socket = 120.seconds),
                 // additional configurations...
             )
+       }else{
+           Toast.makeText(context, "Api Key INVALID!", Toast.LENGTH_LONG).show()
+       }
         return openai
     }
 
-    public suspend fun whisper(
+     suspend fun whisper(
         openAI: OpenAI,
         path: String = "",
     ): Transcription {
+
         println("\n>️ Create transcription...")
         val transcriptionRequest =
             TranscriptionRequest(
@@ -126,6 +138,21 @@ class OpenAiHandler {
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    fun isValidApiKey(apiKey: String): Boolean {
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url("https://api.openai.com/v1/engines/davinci/completions")
+            .header("Authorization", "Bearer $apiKey")
+            .build()
+
+        return try {
+            val response: Response = client.newCall(request).execute()
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
         }
     }
 }

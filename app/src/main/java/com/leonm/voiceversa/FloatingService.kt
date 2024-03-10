@@ -71,7 +71,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                         }
 
                     if (convertedUri != null) {
-                        val openAIResult = OpenAiHandler().callOpenAI() ?: return@launch
+                        val openAIResult = OpenAiHandler().callOpenAI(this@FloatingService) ?: return@launch
                         val whisperResult =
                             OpenAiHandler().whisper(
                                 openAIResult,

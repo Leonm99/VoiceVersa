@@ -61,4 +61,5 @@
     <color name="md_theme_dark_surfaceTint">#86CEFF</color>
     <color name="md_theme_dark_outlineVariant">#41484D</color>
     <color name="md_theme_dark_scrim">#000000</color>
+
 </resources>

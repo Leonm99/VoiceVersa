@@ -165,7 +165,7 @@ class Window(
         stopTextAnimation()
         progressBar.visibility = View.VISIBLE
         launch(Dispatchers.IO) {
-            val openAI = OpenAiHandler().callOpenAI() ?: return@launch
+            val openAI = OpenAiHandler().callOpenAI(context) ?: return@launch
             val chatCompletion = OpenAiHandler().summarize(openAI, originalText)
             val summary = chatCompletion.choices[0].message.content
             val result = summary.toString()
@@ -182,7 +182,7 @@ class Window(
         stopTextAnimation()
         progressBar.visibility = View.VISIBLE
         launch(Dispatchers.IO) {
-            val openAI = OpenAiHandler().callOpenAI() ?: return@launch
+            val openAI = OpenAiHandler().callOpenAI(context) ?: return@launch
             val chatCompletion = OpenAiHandler().translate(openAI, originalText)
             val translatedText = chatCompletion.choices[0].message.content
             val result = translatedText.toString()
