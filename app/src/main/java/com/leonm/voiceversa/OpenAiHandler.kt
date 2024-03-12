@@ -14,32 +14,43 @@ import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.arthenica.mobileffmpeg.FFmpeg
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.internal.wait
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import java.io.File
+import java.io.IOException
 import kotlin.time.Duration.Companion.seconds
 
 class OpenAiHandler {
     private var openai: OpenAI? = null
     private lateinit var sharedPreferencesManager: SharedPreferencesManager
-    public fun callOpenAI(context: Context): OpenAI? {
+     fun callOpenAI(context: Context): OpenAI? {
 
         sharedPreferencesManager = SharedPreferencesManager(context)
-        val key = sharedPreferencesManager.loadData<String>("ApiKey", "Default Value")
-       if(isValidApiKey(key)){
-        openai =
-            OpenAI(
-                token = key,
-                timeout = Timeout(socket = 120.seconds),
-                // additional configurations...
-            )
-       }else{
-           Toast.makeText(context, "Api Key INVALID!", Toast.LENGTH_LONG).show()
-       }
-        return openai
+        val key = sharedPreferencesManager.loadData<String>("API_KEY", "Default Value")
+
+                 openai =
+                 OpenAI(
+                     token = key,
+                     timeout = Timeout(socket = 120.seconds),
+                     // additional configurations...
+                 )
+
+
+
+
+             //Toast.makeText(context, "Api Key INVALID!", Toast.LENGTH_LONG).show()
+
+         return openai
     }
 
      suspend fun whisper(
@@ -83,10 +94,13 @@ class OpenAiHandler {
         return openai.chatCompletion(chatCompletionRequest)
     }
 
-    suspend fun translate(
+    suspend fun translate(context: Context,
         openai: OpenAI,
         userText: String = "",
     ): ChatCompletion {
+
+        sharedPreferencesManager = SharedPreferencesManager(context)
+        val language = sharedPreferencesManager.loadData<String>("LANGUAGE_STRING", "English")
         val chatCompletionRequest =
 
             ChatCompletionRequest(
@@ -97,7 +111,7 @@ class OpenAiHandler {
                             role = ChatRole.System,
                             content =
                                 "You will be provided with a transcription of a voice message, " +
-                                    "and your task is to translate it into english.",
+                                    "and your task is to translate it into $language.",
                         ),
                         ChatMessage(
                             role = ChatRole.User,
@@ -109,7 +123,7 @@ class OpenAiHandler {
         return openai.chatCompletion(chatCompletionRequest)
     }
 
-    suspend fun convertAudio(
+    fun convertAudio(
         context: Context,
         inputUri: Uri,
         outputFormat: String,
@@ -141,18 +155,7 @@ class OpenAiHandler {
         }
     }
 
-    fun isValidApiKey(apiKey: String): Boolean {
-        val client = OkHttpClient()
-        val request = Request.Builder()
-            .url("https://api.openai.com/v1/engines/davinci/completions")
-            .header("Authorization", "Bearer $apiKey")
-            .build()
 
-        return try {
-            val response: Response = client.newCall(request).execute()
-            response.isSuccessful
-        } catch (e: Exception) {
-            false
-        }
-    }
+
+
 }

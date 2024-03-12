@@ -183,7 +183,7 @@ class Window(
         progressBar.visibility = View.VISIBLE
         launch(Dispatchers.IO) {
             val openAI = OpenAiHandler().callOpenAI(context) ?: return@launch
-            val chatCompletion = OpenAiHandler().translate(openAI, originalText)
+            val chatCompletion = OpenAiHandler().translate(context, openAI, originalText)
             val translatedText = chatCompletion.choices[0].message.content
             val result = translatedText.toString()
             Log.d("Translation", result)

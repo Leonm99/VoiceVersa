@@ -55,6 +55,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
         setupClickListeners()
         setupRecyclerView()
+
+
     }
 
     override fun onDestroyView() {

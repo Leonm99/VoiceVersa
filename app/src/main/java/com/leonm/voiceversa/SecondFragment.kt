@@ -23,8 +23,8 @@ class SecondFragment : Fragment(){
     private var _binding: FragmentSecondBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var sharedPreferencesManager: SharedPreferencesManager
-    private lateinit var editText: EditText
+
+
 
     private var isPasswordVisible = false
     private lateinit var buttonShowPassword: ImageButton
@@ -37,8 +37,8 @@ class SecondFragment : Fragment(){
         setHasOptionsMenu(true)
         _binding = FragmentSecondBinding.inflate(inflater, container, false)
 
-        sharedPreferencesManager = SharedPreferencesManager(this.requireContext())
-        editText = binding.editTextTextPassword
+        val sharedPreferencesManager = SharedPreferencesManager(context)
+
         buttonShowPassword = binding.buttonShowPassword
         val aa: ArrayAdapter<*> = ArrayAdapter<Any?>(this.requireContext(), R.layout.dropdown_item, resources.getStringArray(R.array.string_array_languages))
 
@@ -47,17 +47,20 @@ class SecondFragment : Fragment(){
         autoCompleteTextView.setAdapter(aa)
 
         // Set the saved selection, if any
-        val savedSelection = sharedPreferencesManager.loadData<String>("LanguagePos", "-1")
+        val savedSelection = sharedPreferencesManager.loadData<String>("LANGUAGE", "-1")
         if (savedSelection.toInt() != -1) {
+
             autoCompleteTextView.setText(resources.getStringArray(R.array.string_array_languages)[savedSelection.toInt()], false)
         }
 
-        val savedText = sharedPreferencesManager.loadData("ApiKey", "")
-        editText.setText(savedText)
+        val savedText = sharedPreferencesManager.loadData("API_KEY", "")
+        binding.editTextTextPassword.setText(savedText)
 
         autoCompleteTextView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
             // Save the selected item to SharedPreferences
-            sharedPreferencesManager.saveData("LanguagePos", position)
+            sharedPreferencesManager.saveData("LANGUAGE", position)
+            val savedSelection = sharedPreferencesManager.loadData("LANGUAGE", "-1")
+            sharedPreferencesManager.saveData("LANGUAGE_STRING", resources.getStringArray(R.array.string_array_languages)[savedSelection.toInt()])
             Toast.makeText(requireContext(), "Selected: ${parent.getItemAtPosition(position)}", Toast.LENGTH_SHORT).show()
         }
 
@@ -73,11 +76,13 @@ class SecondFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val sharedPreferencesManager = SharedPreferencesManager(context)
         // Save the text to SharedPreferences when the user finishes editing
-        editText.setOnFocusChangeListener { _, hasFocus ->
+        binding.editTextTextPassword.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
-                val text = editText.text.toString()
-                sharedPreferencesManager.saveData("ApiKey", text)
+                val text = binding.editTextTextPassword.text.toString()
+                sharedPreferencesManager.saveData("API_KEY", text)
+                SharedPreferencesManager(context).checkApiKeyValidity()
             }
         }
     }
@@ -92,13 +97,13 @@ class SecondFragment : Fragment(){
         isPasswordVisible = !isPasswordVisible
         if (isPasswordVisible) {
             // Show password
-            editText.transformationMethod = null
+            binding.editTextTextPassword.transformationMethod = null
         } else {
             // Hide password
-            editText.transformationMethod = PasswordTransformationMethod.getInstance()
+            binding.editTextTextPassword.transformationMethod = PasswordTransformationMethod.getInstance()
         }
         // Move cursor to the end of text
-        editText.setSelection(editText.text.length)
+        binding.editTextTextPassword.setSelection(binding.editTextTextPassword.text.length)
     }
 
 }

@@ -40,6 +40,10 @@ class MainActivity : AppCompatActivity() {
 
 
 
+    SharedPreferencesManager(this.baseContext).checkApiKeyValidity()
+
+
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
