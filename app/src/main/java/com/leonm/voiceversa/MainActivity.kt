@@ -1,6 +1,7 @@
 package com.leonm.voiceversa
 
 import android.Manifest.permission
+import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
+    @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (checkAndRequestPermissions()) {
@@ -40,8 +42,10 @@ class MainActivity : AppCompatActivity() {
 
 
 
-    SharedPreferencesManager(this.baseContext).checkApiKeyValidity()
-
+        val isValid = SharedPreferencesManager(this.baseContext).isValidApiKey()
+        if(!isValid){
+            Toast.makeText(this, "Please add your API key in Settings", Toast.LENGTH_SHORT).show()
+        }
 
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -214,8 +218,8 @@ class MainActivity : AppCompatActivity() {
                         ) {
                             Toast.makeText(
                                 this,
-                                "Permissions Granted! :)",
-                                Toast.LENGTH_LONG,
+                                "Permissions Granted!",
+                                Toast.LENGTH_SHORT,
                             ).show()
                             permissionSettingScreen()
                             // else any one or both the permissions are not granted
@@ -258,8 +262,8 @@ class MainActivity : AppCompatActivity() {
                         ) {
                             Toast.makeText(
                                 this,
-                                "Permissions Granted! :)",
-                                Toast.LENGTH_LONG,
+                                "Permissions Granted!",
+                                Toast.LENGTH_SHORT,
                             ).show()
                             // else any one or both the permissions are not granted
                         } else {
@@ -294,7 +298,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun permissionSettingScreen() {
-        Toast.makeText(this, "Scroll down and grant WhispDroid permission.", Toast.LENGTH_LONG)
+        Toast.makeText(this, "Scroll down and grant VoiceVersa permission.", Toast.LENGTH_LONG)
             .show()
         val intent = Intent()
         intent.setAction(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)

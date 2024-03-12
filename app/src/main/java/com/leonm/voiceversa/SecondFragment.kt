@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -28,6 +27,7 @@ class SecondFragment : Fragment(){
 
     private var isPasswordVisible = false
     private lateinit var buttonShowPassword: ImageButton
+    private var savedSelection: String? = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,10 +47,10 @@ class SecondFragment : Fragment(){
         autoCompleteTextView.setAdapter(aa)
 
         // Set the saved selection, if any
-        val savedSelection = sharedPreferencesManager.loadData<String>("LANGUAGE", "-1")
-        if (savedSelection.toInt() != -1) {
+        savedSelection = sharedPreferencesManager.loadData<String>("LANGUAGE", "-1")
+        if (savedSelection!!.toInt() != -1) {
 
-            autoCompleteTextView.setText(resources.getStringArray(R.array.string_array_languages)[savedSelection.toInt()], false)
+            autoCompleteTextView.setText(resources.getStringArray(R.array.string_array_languages)[savedSelection!!.toInt()], false)
         }
 
         val savedText = sharedPreferencesManager.loadData("API_KEY", "")
@@ -59,8 +59,8 @@ class SecondFragment : Fragment(){
         autoCompleteTextView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
             // Save the selected item to SharedPreferences
             sharedPreferencesManager.saveData("LANGUAGE", position)
-            val savedSelection = sharedPreferencesManager.loadData("LANGUAGE", "-1")
-            sharedPreferencesManager.saveData("LANGUAGE_STRING", resources.getStringArray(R.array.string_array_languages)[savedSelection.toInt()])
+            savedSelection = sharedPreferencesManager.loadData("LANGUAGE", "-1")
+            sharedPreferencesManager.saveData("LANGUAGE_STRING", resources.getStringArray(R.array.string_array_languages)[savedSelection!!.toInt()])
             Toast.makeText(requireContext(), "Selected: ${parent.getItemAtPosition(position)}", Toast.LENGTH_SHORT).show()
         }
 
@@ -82,7 +82,12 @@ class SecondFragment : Fragment(){
             if (!hasFocus) {
                 val text = binding.editTextTextPassword.text.toString()
                 sharedPreferencesManager.saveData("API_KEY", text)
-                SharedPreferencesManager(context).checkApiKeyValidity()
+                if (!SharedPreferencesManager(context).isValidApiKey()){
+                    Toast.makeText(context, "API key not valid!", Toast.LENGTH_SHORT).show()
+                }else{
+                    Toast.makeText(context, "API key is valid!", Toast.LENGTH_SHORT).show()
+                }
+
             }
         }
     }
