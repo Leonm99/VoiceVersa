@@ -13,6 +13,7 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.leonm.voiceversa.databinding.FragmentSecondBinding
+import kotlinx.coroutines.runBlocking
 
 
 /**
@@ -27,7 +28,7 @@ class SecondFragment : Fragment(){
 
     private var isPasswordVisible = false
     private lateinit var buttonShowPassword: ImageButton
-    private var savedSelection: String? = ""
+    private var savedSelection: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,38 +38,31 @@ class SecondFragment : Fragment(){
         setHasOptionsMenu(true)
         _binding = FragmentSecondBinding.inflate(inflater, container, false)
 
-        val sharedPreferencesManager = SharedPreferencesManager(context)
+        val sharedPrefs = SharedPreferencesManager(requireContext())
 
         buttonShowPassword = binding.buttonShowPassword
-        val aa: ArrayAdapter<*> = ArrayAdapter<Any?>(this.requireContext(), R.layout.dropdown_item, resources.getStringArray(R.array.string_array_languages))
-
+        val languagesAdapter = ArrayAdapter<Any?>(requireContext(), R.layout.dropdown_item, resources.getStringArray(R.array.string_array_languages))
         val autoCompleteTextView = binding.autocompleteText
+        autoCompleteTextView.setAdapter(languagesAdapter)
 
-        autoCompleteTextView.setAdapter(aa)
+        savedSelection = sharedPrefs.loadData("LANGUAGE", "0").toInt()
+        autoCompleteTextView.setText(resources.getStringArray(R.array.string_array_languages)[savedSelection], false)
 
-        // Set the saved selection, if any
-        savedSelection = sharedPreferencesManager.loadData<String>("LANGUAGE", "-1")
-        if (savedSelection!!.toInt() != -1) {
 
-            autoCompleteTextView.setText(resources.getStringArray(R.array.string_array_languages)[savedSelection!!.toInt()], false)
-        }
-
-        val savedText = sharedPreferencesManager.loadData("API_KEY", "")
-        binding.editTextTextPassword.setText(savedText)
+        val savedApiKey = sharedPrefs.loadData("API_KEY", "")
+        binding.editTextTextPassword.setText(savedApiKey)
 
         autoCompleteTextView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-            // Save the selected item to SharedPreferences
-            sharedPreferencesManager.saveData("LANGUAGE", position)
-            savedSelection = sharedPreferencesManager.loadData("LANGUAGE", "-1")
-            sharedPreferencesManager.saveData("LANGUAGE_STRING", resources.getStringArray(R.array.string_array_languages)[savedSelection!!.toInt()])
+            sharedPrefs.saveData("LANGUAGE", position)
+            savedSelection = sharedPrefs.loadData("LANGUAGE", "0").toInt()
+
+            sharedPrefs.saveData("LANGUAGE_STRING", resources.getStringArray(R.array.string_array_languages)[savedSelection])
             Toast.makeText(requireContext(), "Selected: ${parent.getItemAtPosition(position)}", Toast.LENGTH_SHORT).show()
         }
 
         buttonShowPassword.setOnClickListener {
             togglePasswordVisibility()
         }
-
-
 
         return binding.root
     }
@@ -82,11 +76,15 @@ class SecondFragment : Fragment(){
             if (!hasFocus) {
                 val text = binding.editTextTextPassword.text.toString()
                 sharedPreferencesManager.saveData("API_KEY", text)
-                if (!SharedPreferencesManager(context).isValidApiKey()){
-                    Toast.makeText(context, "API key not valid!", Toast.LENGTH_SHORT).show()
-                }else{
-                    Toast.makeText(context, "API key is valid!", Toast.LENGTH_SHORT).show()
+
+                runBlocking {
+                    if (!SharedPreferencesManager(context).isValidApiKey()){
+                        Toast.makeText(context, "API key not valid!", Toast.LENGTH_SHORT).show()
+                    }else{
+                        Toast.makeText(context, "API key is valid!", Toast.LENGTH_SHORT).show()
+                    }
                 }
+
 
             }
         }

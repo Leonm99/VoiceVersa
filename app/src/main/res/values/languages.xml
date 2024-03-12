@@ -2,13 +2,21 @@
 <resources>
     <string-array
         name="string_array_languages">
+        <item>English </item>
+        <item>Chinese </item>
+        <item>Spanish </item>
+        <item>Arabic </item>
+        <item>Hindi </item>
+        <item>Portuguese </item>
+        <item>Russian </item>
+        <item>Japanese </item>
+        <item>German </item>
         <item>Abkhaz </item>
         <item>Afar </item>
         <item>Afrikaans </item>
         <item>Akan </item>
         <item>Albanian </item>
         <item>Amharic </item>
-        <item>Arabic </item>
         <item>Aragonese </item>
         <item>Armenian </item>
         <item>Assamese </item>
@@ -31,7 +39,6 @@
         <item>Chamorro </item>
         <item>Chechen </item>
         <item>Chewa </item>
-        <item>Chinese </item>
         <item>Chuvash </item>
         <item>Cornish </item>
         <item>Corsican </item>
@@ -42,7 +49,6 @@
         <item>Dhivehi </item>
         <item>Dutch </item>
         <item>Dzongkha </item>
-        <item>English </item>
         <item>Esperanto </item>
         <item>Estonian </item>
         <item>Ewe </item>
@@ -54,7 +60,6 @@
         <item>Galician </item>
         <item>Ganda </item>
         <item>Georgian </item>
-        <item>German </item>
         <item>Gikuyu </item>
         <item>Greek (modern) </item>
         <item>Greenlandic </item>
@@ -64,7 +69,6 @@
         <item>Hausa </item>
         <item>Hebrew </item>
         <item>Herero </item>
-        <item>Hindi </item>
         <item>Hiri Motu </item>
         <item>Hungarian </item>
         <item>Icelandic </item>
@@ -77,7 +81,6 @@
         <item>Inupiaq </item>
         <item>Irish </item>
         <item>Italian </item>
-        <item>Japanese </item>
         <item>Javanese </item>
         <item>Kannada </item>
         <item>Kanuri </item>
@@ -129,7 +132,6 @@
         <item>Ossetic </item>
         <item>Persian (Farsi) </item>
         <item>Polish </item>
-        <item>Portuguese </item>
         <item>Pular </item>
         <item>Punjabi </item>
         <item>Pushto </item>
@@ -137,7 +139,6 @@
         <item>Quechua </item>
         <item>Romanian </item>
         <item>Romansh </item>
-        <item>Russian </item>
         <item>Samoan </item>
         <item>Sango </item>
         <item>Sanskrit (Saṁskṛta) </item>
@@ -151,7 +152,6 @@
         <item>Somali </item>
         <item>Southern Ndebele </item>
         <item>Southern Sotho </item>
-        <item>Spanish </item>
         <item>Sundanese </item>
         <item>Swahili </item>
         <item>Swati </item>

@@ -25,6 +25,7 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.leonm.voiceversa.databinding.ActivityMainBinding
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -42,9 +43,11 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        val isValid = SharedPreferencesManager(this.baseContext).isValidApiKey()
-        if(!isValid){
-            Toast.makeText(this, "Please add your API key in Settings", Toast.LENGTH_SHORT).show()
+        runBlocking {
+            val isValid = SharedPreferencesManager(this@MainActivity).isValidApiKey()
+            if (!isValid) {
+                Toast.makeText(this@MainActivity, "Please a valid API key in settings!", Toast.LENGTH_SHORT).show()
+            }
         }
 
 
@@ -105,71 +108,40 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_ID_MULTIPLE_PERMISSIONS = 1
 
     private fun checkAndRequestPermissions(): Boolean {
-        val permissionReadExternalStorage: Int =
+        val permissionsToCheck = arrayOf(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.READ_MEDIA_IMAGES,
-                )
+                permission.READ_MEDIA_IMAGES
             } else {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.READ_EXTERNAL_STORAGE,
-                )
-            }
-        val permissionWriteExternalStorage: Int =
+                permission.READ_EXTERNAL_STORAGE
+            },
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.READ_MEDIA_AUDIO,
-                )
+                permission.READ_MEDIA_AUDIO
             } else {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.WRITE_EXTERNAL_STORAGE,
-                )
-            }
-        val listPermissionsNeeded: MutableList<String> = ArrayList()
-        if (permissionWriteExternalStorage != PackageManager.PERMISSION_GRANTED) {
+                permission.WRITE_EXTERNAL_STORAGE
+            },
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                listPermissionsNeeded.add(
-                    permission.READ_MEDIA_AUDIO,
-                )
+                permission.READ_MEDIA_VIDEO
             } else {
-                listPermissionsNeeded.add(permission.WRITE_EXTERNAL_STORAGE)
+                permission.WRITE_EXTERNAL_STORAGE
+            },
+            permission.POST_NOTIFICATIONS
+        )
+
+        val listPermissionsNeeded: MutableList<String> = permissionsToCheck
+            .filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
+            .map {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    it
+                } else {
+                    if (it == permission.READ_MEDIA_AUDIO) permission.WRITE_EXTERNAL_STORAGE else it
+                }
             }
-        }
-        if (permissionReadExternalStorage != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                listPermissionsNeeded.add(
-                    permission.READ_MEDIA_IMAGES,
-                )
-            } else {
-                listPermissionsNeeded.add(permission.READ_EXTERNAL_STORAGE)
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val permissionVideoStorage =
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.READ_MEDIA_VIDEO,
-                )
-            if (permissionVideoStorage != PackageManager.PERMISSION_GRANTED) {
-                listPermissionsNeeded.add(permission.READ_MEDIA_VIDEO)
-            }
-            val notificationPermission =
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.POST_NOTIFICATIONS,
-                )
-            if (notificationPermission != PackageManager.PERMISSION_GRANTED) {
-                listPermissionsNeeded.add(permission.POST_NOTIFICATIONS)
-            }
-        }
+            .toMutableList()
+
         if (listPermissionsNeeded.isNotEmpty()) {
             ActivityCompat.requestPermissions(
                 this,
-                listPermissionsNeeded.toTypedArray<String>(),
+                listPermissionsNeeded.toTypedArray(),
                 REQUEST_ID_MULTIPLE_PERMISSIONS,
             )
             return false

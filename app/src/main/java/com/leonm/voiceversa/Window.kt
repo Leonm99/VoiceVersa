@@ -309,11 +309,7 @@ class Window(
         metrix = Pair(width, height)
     }
 
-    private fun disableButtons() {
-        contentButton.isClickable = false
-        summarizeButton.isClickable = false
-        translationButton.isClickable = false
-    }
+
 
     private fun showToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
@@ -328,5 +324,11 @@ class Window(
         contentButton.isClickable = true
         summarizeButton.isClickable = true
         translationButton.isClickable = true
+    }
+
+    fun disableButtons() {
+        contentButton.isClickable = false
+        summarizeButton.isClickable = false
+        translationButton.isClickable = false
     }
 }

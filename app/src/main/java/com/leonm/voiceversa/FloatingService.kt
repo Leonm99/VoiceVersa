@@ -61,6 +61,14 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         val localPath = intent?.getStringExtra("PATH")
         if (command == INTENT_COMMAND_SHOW) {
             window?.open()
+            val isValid = SharedPreferencesManager(applicationContext).loadData("isApiKeyValid", "false").toBoolean()
+            if (!isValid) {
+                launch(Dispatchers.Main) {
+                    window?.updateTextViewWithSlightlyUnevenTypingEffect("Please enter a valid OpenAI API key in the settings.")
+                    window?.disableButtons()
+                }
+            }else {
+
 
             launch(Dispatchers.IO) {
                 try {
@@ -97,6 +105,8 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                     // Clear the cache directory
                     clearCacheDirectory()
                 }
+            }
+
             }
         }
 
