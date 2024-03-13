@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,7 +33,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     private val transcriptions = mutableListOf<Transcription>()
 
     private lateinit var jsonManager: JsonManager
-    lateinit var recyclerView: RecyclerView
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -126,7 +125,6 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         transcriptions.clear()
         transcriptions.addAll(jsonManager.loadTranscriptions())
         transcriptions.sortedByDescending { it.timestamp }
-        Log.d("transcriptions", "yeah we get here")
         recyclerView.adapter?.notifyDataSetChanged()
     }
 

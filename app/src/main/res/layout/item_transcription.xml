@@ -7,7 +7,12 @@
     android:layout_marginHorizontal="8dp"
     android:layout_marginTop="8dp"
     app:cardCornerRadius="20dp"
-    app:cardElevation="0dp">
+    app:cardElevation="0dp"
+    app:cardPreventCornerOverlap="false"
+    app:cardUseCompatPadding="true"
+    app:strokeColor="@android:color/transparent"
+    app:strokeWidth="0dp"
+   >
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

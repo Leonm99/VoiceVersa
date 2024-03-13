@@ -9,9 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.google.android.material.button.MaterialButton
 import com.leonm.voiceversa.databinding.FragmentSecondBinding
 import kotlinx.coroutines.runBlocking
 
@@ -26,15 +26,15 @@ class SecondFragment : Fragment(){
 
 
 
-    private var isPasswordVisible = false
-    private lateinit var buttonShowPassword: ImageButton
+    private var isKeyVisible = false
+    private lateinit var buttonShowPassword: MaterialButton
     private var savedSelection: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
+    ): View {
         setHasOptionsMenu(true)
         _binding = FragmentSecondBinding.inflate(inflater, container, false)
 
@@ -97,13 +97,15 @@ class SecondFragment : Fragment(){
 
 
     private fun togglePasswordVisibility() {
-        isPasswordVisible = !isPasswordVisible
-        if (isPasswordVisible) {
+        isKeyVisible = !isKeyVisible
+        if (isKeyVisible) {
             // Show password
             binding.editTextTextPassword.transformationMethod = null
+            binding.buttonShowPassword.setIconResource(R.drawable.visibility_off_fill)
         } else {
             // Hide password
             binding.editTextTextPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+            binding.buttonShowPassword.setIconResource(R.drawable.visibility_fill)
         }
         // Move cursor to the end of text
         binding.editTextTextPassword.setSelection(binding.editTextTextPassword.text.length)

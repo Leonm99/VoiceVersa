@@ -20,11 +20,11 @@ import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.coroutines.CoroutineContext
 
-const val INTENT_COMMAND = "com.example.whispdroid.COMMAND"
+const val INTENT_COMMAND = "com.example.voiceversa.COMMAND"
 const val INTENT_COMMAND_EXIT = "EXIT"
 const val INTENT_COMMAND_SHOW = "START"
 
-private const val NOTIFICATION_CHANNEL_GENERAL = "quicknote_general"
+private const val NOTIFICATION_CHANNEL_GENERAL = "voiceversa_general"
 private const val CODE_FOREGROUND_SERVICE = 1
 private const val CODE_EXIT_INTENT = 2
 
@@ -49,16 +49,11 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         showNotification()
 
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
-            AppCompatDelegate.MODE_NIGHT_YES
-        } else {
-            AppCompatDelegate.MODE_NIGHT_NO
-        }
+        AppCompatDelegate.setDefaultNightMode(if (nightMode == Configuration.UI_MODE_NIGHT_YES) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO)
 
         window = Window(this, this, this, coroutineContext)
 
         val command = intent?.getStringExtra(INTENT_COMMAND)
-        val localPath = intent?.getStringExtra("PATH")
         if (command == INTENT_COMMAND_SHOW) {
             window?.open()
             val isValid = SharedPreferencesManager(applicationContext).loadData("isApiKeyValid", "false").toBoolean()
@@ -67,57 +62,44 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                     window?.updateTextViewWithSlightlyUnevenTypingEffect("Please enter a valid OpenAI API key in the settings.")
                     window?.disableButtons()
                 }
-            }else {
-
-
-            launch(Dispatchers.IO) {
-                try {
-                    val audioFileUri: Uri? = localPath?.let { Uri.fromFile(File(it)) }
-                    val convertedUri =
-                        audioFileUri?.let {
+            } else {
+                launch(Dispatchers.IO) {
+                    try {
+                        val localPath = intent.getStringExtra("PATH")
+                        val audioFileUri: Uri? = localPath?.let { Uri.fromFile(File(it)) }
+                        val convertedUri = audioFileUri?.let {
                             OpenAiHandler().convertAudio(this@FloatingService, it, "mp3")
                         }
 
-                    if (convertedUri != null) {
-                        val openAIResult = OpenAiHandler().callOpenAI(this@FloatingService) ?: return@launch
-                        val whisperResult =
-                            OpenAiHandler().whisper(
-                                openAIResult,
-                                convertedUri.path ?: return@launch,
-                            )
-                        inputLanguage = whisperResult.language.toString()
-                        Log.d("FloatingService", "Language: $inputLanguage")
+                        convertedUri?.let {
+                            val openAIResult = OpenAiHandler().callOpenAI(this@FloatingService) ?: return@launch
+                            val whisperResult = OpenAiHandler().whisper(openAIResult, it.path ?: return@launch)
+                            inputLanguage = whisperResult.language.toString()
+                            Log.d("FloatingService", "Language: $inputLanguage")
 
-                        result = whisperResult.text
-                        filePath = convertedUri.path ?: return@launch
+                            result = whisperResult.text
+                            filePath = it.path ?: return@launch
 
-                        window!!.enableButtons()
-                        launch(Dispatchers.Main) {
-                            window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
+                            window!!.enableButtons()
+                            launch(Dispatchers.Main) {
+                                window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
+                            }
+                        } ?: run {
+                            // Handle the conversion failure
                         }
-                    } else {
-                        // Handle the conversion failure
+                    } catch (e: Exception) {
+                        // Handle exceptions, log, or perform any necessary cleanup
+                        e.printStackTrace()
+                    } finally {
+                        // Clear the cache directory
+                        clearCacheDirectory()
                     }
-                } catch (e: Exception) {
-                    // Handle exceptions, log, or perform any necessary cleanup
-                    e.printStackTrace()
-                } finally {
-                    // Clear the cache directory
-                    clearCacheDirectory()
                 }
             }
-
-            }
-        }
-
-        // Exit the service if we receive the EXIT command.
-        // START_NOT_STICKY is important here, we don't want
-        // the service to be relaunched.
-        if (command == INTENT_COMMAND_EXIT) {
+        } else if (command == INTENT_COMMAND_EXIT) {
             stopService()
             return START_NOT_STICKY
         }
-
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -150,21 +132,19 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                 PendingIntent.FLAG_IMMUTABLE,
             )
 
+        val channel = NotificationChannel(
+            NOTIFICATION_CHANNEL_GENERAL,
+            "quicknote_general",
+            NotificationManager.IMPORTANCE_DEFAULT,
+        )
+        channel.enableLights(false)
+        channel.setShowBadge(false)
+        channel.enableVibration(false)
+        channel.setSound(null, null)
+        channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+
         try {
-            with(
-                NotificationChannel(
-                    NOTIFICATION_CHANNEL_GENERAL,
-                    "quicknote_general",
-                    NotificationManager.IMPORTANCE_DEFAULT,
-                ),
-            ) {
-                enableLights(false)
-                setShowBadge(false)
-                enableVibration(false)
-                setSound(null, null)
-                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-                manager.createNotificationChannel(this)
-            }
+            manager.createNotificationChannel(channel)
         } catch (ignored: Exception) {
             // Handle the exception if needed
         }
@@ -207,7 +187,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
             val transcription = Transcription(result)
             transcriptions.add(transcription)
 
-            launch(Dispatchers.IO) {
+            CoroutineScope(Dispatchers.IO).launch {
                 transcriptions.addAll(jsonManager.loadTranscriptions())
                 jsonManager.saveTranscriptions(transcriptions)
             }

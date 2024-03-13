@@ -33,8 +33,11 @@
     </style>
 
     <style name="MyCardView" parent="AppTheme">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         <item name="cardBackgroundColor">@color/md_theme_light_secondaryContainer</item>
         <item name="android:textColor" >@color/md_theme_light_onSecondaryContainer</item>
+        <item name="android:strokeWidth">0</item>
+        <item name="android:strokeColor">@android:color/transparent</item>
     </style>
 
     <style name="MyBackground" parent="AppTheme">
