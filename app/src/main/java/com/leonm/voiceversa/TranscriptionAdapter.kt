@@ -36,25 +36,22 @@ class TranscriptionAdapter(
         parent: ViewGroup,
         viewType: Int,
     ): TranscriptionViewHolder {
-        val view =
-            LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_transcription, parent, false)
+        val inflater = LayoutInflater.from(parent.context)
+        val view = inflater.inflate(R.layout.item_transcription, parent, false)
         return TranscriptionViewHolder(view)
     }
 
     override fun onBindViewHolder(
         holder: TranscriptionViewHolder,
-        position: Int,
+        position: Int
     ) {
         val transcription = transcriptions[position]
         holder.bind(transcription)
 
-        // Set the click listener for the delete button
         holder.deleteButton.setOnClickListener {
             onDeleteClickListener.onDeleteClick(transcription)
         }
 
-        // Set click listener to toggle expansion state
         holder.itemView.setOnClickListener {
             transcription.expanded = !transcription.expanded
             notifyItemChanged(position)
@@ -70,7 +67,7 @@ class TranscriptionAdapter(
 
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
-        val contentLayout: LinearLayout = itemView.findViewById(R.id.contentLayout)
+        private val contentLayout: LinearLayout = itemView.findViewById(R.id.contentLayout)
         val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
 
@@ -78,17 +75,14 @@ class TranscriptionAdapter(
             textTranscriptionContent.text = transcription.content
             textTranscriptionDate.text = transcription.formattedDateTime
 
-            // Adjust height based on expansion state and content length
             val maxExpandedHeight = 450
             val maxContentLength = 200
             val contentLength = transcription.content.length
 
             val layoutParams = contentLayout.layoutParams
             if (contentLength <= maxContentLength) {
-                // If content length is smaller than or equal to max length, match content height
                 layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
             } else {
-                // Otherwise, set maximum height when not expanded
                 if (transcription.expanded) {
                     layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
                 } else {

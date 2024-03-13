@@ -1,6 +1,7 @@
 package com.leonm.voiceversa
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -23,58 +24,62 @@ class ReceiveIntentActivity : Activity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-        if (intent?.action == Intent.ACTION_SEND && intent.type?.startsWith("audio/") == true || intent?.type?.startsWith(
-                "video/",
-            ) == true
-        ) {
-            // An audio file was received
+        if (intent?.action == Intent.ACTION_SEND && (intent.type?.startsWith("audio/") == true || intent.type?.startsWith("video/") == true)) {
             val audioUri: Uri? = intent.getParcelableExtra(Intent.EXTRA_STREAM)
 
             if (audioUri != null) {
-                // Save the audio file to app's cache directory
                 val audioFile = saveToCache(audioUri)
                 if (audioFile != null) {
-                    // Start your FloatingService with a delay
                     Handler(Looper.getMainLooper()).postDelayed({
                         startFloatingService("START", audioFile.absolutePath)
                     }, 500)
                 }
             }
         }
-
-        // Finish the activity
         finish()
     }
 
     private fun saveToCache(uri: Uri): File? {
-        try {
+        return try {
             val inputStream: InputStream? = contentResolver.openInputStream(uri)
-            val cacheDir: File? = cacheDir
+            val cacheDirectory: File? = cacheDir
 
-            if (inputStream != null && cacheDir != null) {
-                val file = File(cacheDir, "shared_audio_file.${getFileExtension(uri)}")
-                val outputStream = FileOutputStream(file)
-                val buffer = ByteArray(1024)
-                var bytesRead: Int
-
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                    outputStream.write(buffer, 0, bytesRead)
+            if (inputStream != null && cacheDirectory != null) {
+                val file = File(cacheDirectory, "shared_audio_file.${getFileExtension(uri)}")
+                inputStream.use { input ->
+                    FileOutputStream(file).use { output ->
+                        input.copyTo(output)
+                    }
                 }
-
-                outputStream.close()
-                inputStream.close()
-                return file
+                file
+            } else {
+                null
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            // Handle the exception in a more meaningful way, e.g. log an error message
+            null
         }
-
-        return null
     }
 
     private fun getFileExtension(uri: Uri): String {
-        val contentResolver = contentResolver
+        val resolver = contentResolver
         val mimeTypeMap = android.webkit.MimeTypeMap.getSingleton()
-        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri)) ?: ""
+        return mimeTypeMap.getExtensionFromMimeType(resolver.getType(uri)) ?: ""
+    }
+
+    private fun startFloatingService(
+        command: String = "",
+        path: String = ""
+    ) {
+        val intent = Intent(this, FloatingService::class.java)
+        if (command.isNotBlank()) {
+            intent.putExtra(INTENT_COMMAND, command)
+        }
+        if (path.isNotBlank()) {
+            intent.putExtra("PATH", path)
+        }
+        startForegroundService(intent)
     }
 }
+
+

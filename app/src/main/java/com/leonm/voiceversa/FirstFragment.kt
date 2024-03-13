@@ -32,7 +32,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     private val binding get() = _binding!!
     private val openAiHandler = OpenAiHandler()
     private val transcriptions = mutableListOf<Transcription>()
-    private lateinit var transcriptionAdapter: TranscriptionAdapter
+
     private lateinit var jsonManager: JsonManager
     lateinit var recyclerView: RecyclerView
 
@@ -65,12 +65,12 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     }
 
     override fun onDeleteClick(transcription: Transcription) {
-        // Remove the transcription from the list
-        transcriptions.remove(transcription)
-        // Notify the adapter of the change
-        transcriptionAdapter.notifyDataSetChanged()
-        // Save the updated list to the JSON file
-        jsonManager.saveTranscriptions(transcriptions)
+        val position = transcriptions.indexOf(transcription)
+        if (position != -1) {
+            transcriptions.removeAt(position)
+            recyclerView.adapter?.notifyItemRemoved(position)
+            jsonManager.saveTranscriptions(transcriptions)
+        }
     }
 
     private fun setupClickListeners() {
@@ -97,23 +97,18 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     }
 
     private fun setupRecyclerView() {
-        // Check if the RecyclerView's adapter is already set
         if (recyclerView.adapter == null) {
-            // Clear the transcriptions list to avoid duplication
             transcriptions.clear()
-
-            // Load transcriptions from the JSON file
             transcriptions.addAll(jsonManager.loadTranscriptions())
-            transcriptions.sortedByDescending { it.timestamp }
-            transcriptionAdapter = TranscriptionAdapter(transcriptions, this)
-            recyclerView.adapter = transcriptionAdapter
+            transcriptions.sortByDescending { it.timestamp }
+            recyclerView.adapter = TranscriptionAdapter(transcriptions, this)
             recyclerView.layoutManager = LinearLayoutManager(requireContext())
         }
     }
 
     private suspend fun updateOutputText() {
         withContext(Dispatchers.Main) {
-            transcriptionAdapter.notifyDataSetChanged()
+            recyclerView.adapter?.notifyDataSetChanged()
         }
         // Notify the adapter that data set has changed
     }
@@ -132,7 +127,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         transcriptions.addAll(jsonManager.loadTranscriptions())
         transcriptions.sortedByDescending { it.timestamp }
         Log.d("transcriptions", "yeah we get here")
-        transcriptionAdapter.notifyDataSetChanged()
+        recyclerView.adapter?.notifyDataSetChanged()
     }
 
     private suspend fun performWhisperTranscription(path: String?) {
@@ -181,11 +176,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         return try {
             requireContext().contentResolver.openInputStream(uri!!)?.use { inputStream ->
                 val fileExtension = getFileExtension(uri)
-                val internalFile =
-                    File(
-                        requireContext().filesDir,
-                        "selected_file$fileExtension",
-                    )
+                val internalFile = File(requireContext().filesDir, "selected_file$fileExtension")
                 FileOutputStream(internalFile).use { outputStream ->
                     inputStream.copyTo(outputStream, bufferSize = 4 * 1024)
                 }

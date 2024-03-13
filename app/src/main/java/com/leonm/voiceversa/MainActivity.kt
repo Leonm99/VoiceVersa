@@ -34,13 +34,8 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (checkAndRequestPermissions()) {
-            // Do your desire work here
-        } else {
-            // Call Again :
-            checkAndRequestPermissions()
-        }
 
+        checkAndRequestPermissions()
 
 
         runBlocking {
@@ -108,40 +103,71 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_ID_MULTIPLE_PERMISSIONS = 1
 
     private fun checkAndRequestPermissions(): Boolean {
-        val permissionsToCheck = arrayOf(
+        val permissionReadExternalStorage: Int =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                permission.READ_MEDIA_IMAGES
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.READ_MEDIA_IMAGES,
+                )
             } else {
-                permission.READ_EXTERNAL_STORAGE
-            },
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                permission.READ_MEDIA_AUDIO
-            } else {
-                permission.WRITE_EXTERNAL_STORAGE
-            },
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                permission.READ_MEDIA_VIDEO
-            } else {
-                permission.WRITE_EXTERNAL_STORAGE
-            },
-            permission.POST_NOTIFICATIONS
-        )
-
-        val listPermissionsNeeded: MutableList<String> = permissionsToCheck
-            .filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
-            .map {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    it
-                } else {
-                    if (it == permission.READ_MEDIA_AUDIO) permission.WRITE_EXTERNAL_STORAGE else it
-                }
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.READ_EXTERNAL_STORAGE,
+                )
             }
-            .toMutableList()
-
+        val permissionWriteExternalStorage: Int =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.READ_MEDIA_AUDIO,
+                )
+            } else {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.WRITE_EXTERNAL_STORAGE,
+                )
+            }
+        val listPermissionsNeeded: MutableList<String> = ArrayList()
+        if (permissionWriteExternalStorage != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                listPermissionsNeeded.add(
+                    permission.READ_MEDIA_AUDIO,
+                )
+            } else {
+                listPermissionsNeeded.add(permission.WRITE_EXTERNAL_STORAGE)
+            }
+        }
+        if (permissionReadExternalStorage != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                listPermissionsNeeded.add(
+                    permission.READ_MEDIA_IMAGES,
+                )
+            } else {
+                listPermissionsNeeded.add(permission.READ_EXTERNAL_STORAGE)
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val permissionVideoStorage =
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.READ_MEDIA_VIDEO,
+                )
+            if (permissionVideoStorage != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(permission.READ_MEDIA_VIDEO)
+            }
+            val notificationPermission =
+                ContextCompat.checkSelfPermission(
+                    this,
+                    permission.POST_NOTIFICATIONS,
+                )
+            if (notificationPermission != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(permission.POST_NOTIFICATIONS)
+            }
+        }
         if (listPermissionsNeeded.isNotEmpty()) {
             ActivityCompat.requestPermissions(
                 this,
-                listPermissionsNeeded.toTypedArray(),
+                listPermissionsNeeded.toTypedArray<String>(),
                 REQUEST_ID_MULTIPLE_PERMISSIONS,
             )
             return false
@@ -190,8 +216,8 @@ class MainActivity : AppCompatActivity() {
                         ) {
                             Toast.makeText(
                                 this,
-                                "Permissions Granted!",
-                                Toast.LENGTH_SHORT,
+                                "Permissions Granted! :)",
+                                Toast.LENGTH_LONG,
                             ).show()
                             permissionSettingScreen()
                             // else any one or both the permissions are not granted
@@ -234,8 +260,8 @@ class MainActivity : AppCompatActivity() {
                         ) {
                             Toast.makeText(
                                 this,
-                                "Permissions Granted!",
-                                Toast.LENGTH_SHORT,
+                                "Permissions Granted! :)",
+                                Toast.LENGTH_LONG,
                             ).show()
                             // else any one or both the permissions are not granted
                         } else {
@@ -270,7 +296,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun permissionSettingScreen() {
-        Toast.makeText(this, "Scroll down and grant VoiceVersa permission.", Toast.LENGTH_LONG)
+        Toast.makeText(this, "Scroll down and grant WhispDroid permission.", Toast.LENGTH_LONG)
             .show()
         val intent = Intent()
         intent.setAction(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
@@ -289,4 +315,7 @@ class MainActivity : AppCompatActivity() {
             .create()
             .show()
     }
+
+
+
 }
