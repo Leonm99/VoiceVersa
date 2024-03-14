@@ -1,7 +1,6 @@
 package com.leonm.voiceversa
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -71,9 +70,12 @@ class ReceiveIntentActivity : Activity() {
         command: String = "",
         path: String = ""
     ) {
+
+
         val intent = Intent(this, FloatingService::class.java)
         if (command.isNotBlank()) {
             intent.putExtra(INTENT_COMMAND, command)
+
         }
         if (path.isNotBlank()) {
             intent.putExtra("PATH", path)

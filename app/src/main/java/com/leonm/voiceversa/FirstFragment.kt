@@ -72,6 +72,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         }
     }
 
+
+
     private fun setupClickListeners() {
         binding.fab.setOnClickListener {
             lifecycleScope.launch {
@@ -114,7 +116,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
     private fun saveTranscriptionToFile(content: String) {
         transcriptions.clear()
-        val transcription = Transcription(content)
+        val transcription = Transcription(content,"","")
         transcriptions.add(transcription)
 
         transcriptions.addAll(jsonManager.loadTranscriptions())
@@ -195,4 +197,6 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
+
+
 }

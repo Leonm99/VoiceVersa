@@ -23,12 +23,15 @@ import kotlin.coroutines.CoroutineContext
 const val INTENT_COMMAND = "com.example.voiceversa.COMMAND"
 const val INTENT_COMMAND_EXIT = "EXIT"
 const val INTENT_COMMAND_SHOW = "START"
+const val STRING_ARRAY = "ARRAY"
 
 private const val NOTIFICATION_CHANNEL_GENERAL = "voiceversa_general"
 private const val CODE_FOREGROUND_SERVICE = 1
 private const val CODE_EXIT_INTENT = 2
 
 private val transcriptions = mutableListOf<Transcription>()
+private var summarizedContent: String = ""
+private var translatedContent: String = ""
 
 class FloatingService : Service(), CoroutineScope, WindowCallback {
     private val job = Job()
@@ -45,13 +48,15 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         flags: Int,
         startId: Int,
     ): Int {
+
         jsonManager = JsonManager(applicationContext)
         showNotification()
+
 
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         AppCompatDelegate.setDefaultNightMode(if (nightMode == Configuration.UI_MODE_NIGHT_YES) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO)
 
-        window = Window(this, this, this, coroutineContext)
+        window = Window(applicationContext, this, this, coroutineContext)
 
         val command = intent?.getStringExtra(INTENT_COMMAND)
         if (command == INTENT_COMMAND_SHOW) {
@@ -100,6 +105,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
             stopService()
             return START_NOT_STICKY
         }
+
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -184,7 +190,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
     override fun onContentButtonClicked() {
         if (result.isNotEmpty()) {
             transcriptions.clear()
-            val transcription = Transcription(result)
+            val transcription = Transcription(result, summarizedContent, translatedContent)
             transcriptions.add(transcription)
 
             CoroutineScope(Dispatchers.IO).launch {
@@ -193,5 +199,13 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
             }
             result = ""
         }
+    }
+
+    fun setSummary(value: String) {
+        summarizedContent = value
+    }
+
+    fun setTranslation(value: String) {
+        translatedContent = value
     }
 }

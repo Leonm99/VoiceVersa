@@ -49,5 +49,9 @@
     <string name="choose_file">Choose File</string>
     <string name="start">Start</string>
     <string name="todo">TODO</string>
+    <string name="api_key">API key</string>
+    <string name="toggle_password_visibility">Toggle password visibility</string>
+    <string name="translation_language">Translation Language</string>
+    <string name="language">Language</string>
 
 </resources>

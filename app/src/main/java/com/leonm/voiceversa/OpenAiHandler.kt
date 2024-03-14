@@ -2,7 +2,6 @@ package com.leonm.voiceversa
 
 import android.content.Context
 import android.net.Uri
-import android.widget.Toast
 import com.aallam.openai.api.audio.Transcription
 import com.aallam.openai.api.audio.TranscriptionRequest
 import com.aallam.openai.api.chat.ChatCompletion
@@ -14,20 +13,9 @@ import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.arthenica.mobileffmpeg.FFmpeg
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.FormBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.internal.wait
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import java.io.File
-import java.io.IOException
 import kotlin.time.Duration.Companion.seconds
 
 class OpenAiHandler {

@@ -12,6 +12,8 @@ import java.util.Locale
 
 data class Transcription(
     val content: String,
+    val translatedContent: String,
+    val summarizedContent: String,
     val timestamp: Long = System.currentTimeMillis(),
     val formattedDateTime: String = formatTimestamp(timestamp),
     var expanded: Boolean = false,
@@ -26,11 +28,13 @@ data class Transcription(
 
 class TranscriptionAdapter(
     private val transcriptions: MutableList<Transcription>,
-    private val onDeleteClickListener: OnDeleteClickListener,
+    private val onDeleteClickListener: OnDeleteClickListener
 ) : RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
     interface OnDeleteClickListener {
         fun onDeleteClick(transcription: Transcription)
     }
+
+
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -52,6 +56,7 @@ class TranscriptionAdapter(
             onDeleteClickListener.onDeleteClick(transcription)
         }
 
+
         holder.itemView.setOnClickListener {
             transcription.expanded = !transcription.expanded
             notifyItemChanged(position)
@@ -67,9 +72,12 @@ class TranscriptionAdapter(
 
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
+        val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
+        val translationButton: Button = itemView.findViewById(R.id.translationButton)
         private val contentLayout: LinearLayout = itemView.findViewById(R.id.contentLayout)
         val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
+        private val buttonHolder: LinearLayout = itemView.findViewById(R.id.button_holder)
 
         fun bind(transcription: Transcription) {
             textTranscriptionContent.text = transcription.content
@@ -90,6 +98,37 @@ class TranscriptionAdapter(
                 }
             }
             contentLayout.layoutParams = layoutParams
+
+            var summaryAvailable = transcription.summarizedContent.isNotEmpty()
+            var translationAvailable = transcription.translatedContent.isNotEmpty()
+            if (summaryAvailable || translationAvailable) {
+                if(summaryAvailable){
+                    summarizeButton.isClickable = true
+                    summarizeButton.visibility = View.VISIBLE
+                }else{
+                    summarizeButton.visibility = View.GONE
+                }
+                if (translationAvailable){
+                    translationButton.isClickable = true
+                    translationButton.visibility = View.VISIBLE
+                }else{
+                    translationButton.visibility = View.GONE
+                }
+            }else{
+                buttonHolder.visibility = View.GONE
+            }
+
+
+            summarizeButton.setOnClickListener {
+                if(transcription.summarizedContent.isNotEmpty()){
+                    textTranscriptionContent.text = transcription.summarizedContent
+                }
+            }
+            translationButton.setOnClickListener {
+                if(transcription.translatedContent.isNotEmpty()){
+                    textTranscriptionContent.text = transcription.translatedContent
+                }
+            }
         }
     }
 }

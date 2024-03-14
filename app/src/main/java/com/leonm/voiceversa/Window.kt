@@ -1,15 +1,12 @@
 package com.leonm.voiceversa
 
+
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -29,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
+
 interface WindowCallback {
     fun onContentButtonClicked()
 
@@ -39,7 +37,7 @@ class Window(
     private val context: Context,
     private val windowCallback: WindowCallback,
     private val floatingService: FloatingService,
-    override val coroutineContext: CoroutineContext,
+    override val coroutineContext: CoroutineContext
 ) : CoroutineScope {
     private lateinit var textView: TextView
     private lateinit var progressBar: ProgressBar
@@ -48,9 +46,9 @@ class Window(
     private lateinit var summarizeButton: Button
     private lateinit var translationButton: Button
 
+
     private var newText: String = ""
     private var charIndex: Int = 0
-    private val handler = Handler(Looper.getMainLooper())
     private var metrics = Pair(0, 0)
 
     private var continueTextAnimation = true
@@ -115,6 +113,8 @@ class Window(
         summarizeButton = rootView.findViewById(R.id.summarize_content)
         translationButton = rootView.findViewById(R.id.translate_content)
 
+
+
         rootView.isFocusableInTouchMode = true
         rootView.requestFocus()
         rootView.setOnKeyListener { v, keyCode, event ->
@@ -139,6 +139,10 @@ class Window(
         contentButton.setOnClickListener { onContentButtonClicked() }
         summarizeButton.setOnClickListener { summarizeButtonClicked() }
         translationButton.setOnClickListener { translationButtonClicked() }
+
+
+
+
     }
 
     private fun onContentButtonClicked() {
@@ -158,6 +162,7 @@ class Window(
             val openAi = OpenAiHandler().callOpenAI(context) ?: return@launch
             val chatCompletion = OpenAiHandler().summarize(openAi, originalText)
             val summary = chatCompletion.choices[0].message.content.toString()
+            floatingService.setSummary(summary)
             launch(Dispatchers.Main) {
                 updateTextViewWithSlightlyUnevenTypingEffect(summary)
             }
@@ -173,12 +178,14 @@ class Window(
             val openAiResponse = openAiHandler.callOpenAI(context) ?: return@launch
             val translatedResponse = openAiHandler.translate(context, openAiResponse, originalText)
             val translatedText = translatedResponse.choices[0].message.content
-
+            floatingService.setTranslation(translatedText!!)
             launch(Dispatchers.Main) {
                 updateTextViewWithSlightlyUnevenTypingEffect(translatedText!!)
             }
         }
     }
+
+
 
     fun open() {
             if (!isWindowOpen) {
