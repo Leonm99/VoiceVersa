@@ -2,7 +2,7 @@
 
 
 # VoiceVersa
-![Logo](https://github.com/Leonm99/WhispDroid/blob/master/app/src/main/res/drawable/icon_round.png?raw=true)
+![Logo](https://github.com/Leonm99/VoiceVersa/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png?raw=true)
 
 Android Transcription App  
 
@@ -13,17 +13,15 @@ Just share the voice message (or any other audio/video file) and a Overlay will 
 
 ## Features
 
-- Light/dark mode toggle
-- Live previews
-- Fullscreen mode
-- Cross platform
+- Transcription
+- Summarization
+- Translation
 
 
 ## Roadmap
 
-- Additional browser support
-
-- Add more integrations
+- Youtube link support
+- Text to Audio
 
 
 ## Demo
