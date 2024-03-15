@@ -261,7 +261,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.makeText(
                                 this,
                                 "Permissions Granted! :)",
-                                Toast.LENGTH_LONG,
+                                Toast.LENGTH_SHORT,
                             ).show()
                             // else any one or both the permissions are not granted
                         } else {
@@ -296,7 +296,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun permissionSettingScreen() {
-        Toast.makeText(this, "Scroll down and grant WhispDroid permission.", Toast.LENGTH_LONG)
+        Toast.makeText(this, "Scroll down and grant VoiceVersa permission.", Toast.LENGTH_LONG)
             .show()
         val intent = Intent()
         intent.setAction(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)

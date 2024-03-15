@@ -12,8 +12,8 @@ import java.util.Locale
 
 data class Transcription(
     val content: String,
-    val translatedContent: String,
     val summarizedContent: String,
+    val translatedContent: String,
     val timestamp: Long = System.currentTimeMillis(),
     val formattedDateTime: String = formatTimestamp(timestamp),
     var expanded: Boolean = false,
@@ -83,51 +83,54 @@ class TranscriptionAdapter(
             textTranscriptionContent.text = transcription.content
             textTranscriptionDate.text = transcription.formattedDateTime
 
-            val maxExpandedHeight = 450
             val maxContentLength = 200
             val contentLength = transcription.content.length
 
-            val layoutParams = contentLayout.layoutParams
-            if (contentLength <= maxContentLength) {
-                layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            if (transcription.expanded || contentLength <= maxContentLength) {
+                textTranscriptionContent.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
             } else {
-                if (transcription.expanded) {
-                    layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                } else {
-                    layoutParams.height = maxExpandedHeight
-                }
+                textTranscriptionContent.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    400
+                )
             }
-            contentLayout.layoutParams = layoutParams
 
-            var summaryAvailable = transcription.summarizedContent.isNotEmpty()
-            var translationAvailable = transcription.translatedContent.isNotEmpty()
+
+
+            val summaryAvailable = transcription.summarizedContent.isNotEmpty()
+            val translationAvailable = transcription.translatedContent.isNotEmpty()
+
             if (summaryAvailable || translationAvailable) {
-                if(summaryAvailable){
-                    summarizeButton.isClickable = true
-                    summarizeButton.visibility = View.VISIBLE
-                }else{
-                    summarizeButton.visibility = View.GONE
-                }
-                if (translationAvailable){
-                    translationButton.isClickable = true
-                    translationButton.visibility = View.VISIBLE
-                }else{
-                    translationButton.visibility = View.GONE
-                }
-            }else{
+                summarizeButton.isClickable = summaryAvailable
+                summarizeButton.visibility = if (summaryAvailable) View.VISIBLE else View.GONE
+
+                translationButton.isClickable = translationAvailable
+                translationButton.visibility = if (translationAvailable) View.VISIBLE else View.GONE
+            } else {
                 buttonHolder.visibility = View.GONE
             }
 
-
             summarizeButton.setOnClickListener {
-                if(transcription.summarizedContent.isNotEmpty()){
+                if (summaryAvailable) {
                     textTranscriptionContent.text = transcription.summarizedContent
                 }
             }
+
             translationButton.setOnClickListener {
-                if(transcription.translatedContent.isNotEmpty()){
+                if (translationAvailable) {
                     textTranscriptionContent.text = transcription.translatedContent
                 }
+            }
+        }
+
+        private fun calculateCardViewHeight(contentLength: Int, maxContentLength: Int, maxExpandedHeight: Int, isExpanded: Boolean): Int {
+            return if (contentLength < maxContentLength || isExpanded) {
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            } else {
+                maxExpandedHeight
             }
         }
     }

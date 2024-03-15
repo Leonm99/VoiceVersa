@@ -74,8 +74,7 @@
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="false"
-                android:onClick="onSummarizeButtonClicked"
-                android:visibility="invisible"
+                android:visibility="visible"
                 app:icon="@drawable/summarize"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
@@ -91,8 +90,7 @@
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="false"
-                android:onClick="onTranslationButtonClicked"
-                android:visibility="invisible"
+                android:visibility="visible"
                 app:icon="@drawable/translate"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
@@ -100,6 +98,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
         </LinearLayout>
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

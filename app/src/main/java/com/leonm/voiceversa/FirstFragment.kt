@@ -70,6 +70,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
             recyclerView.adapter?.notifyItemRemoved(position)
             jsonManager.saveTranscriptions(transcriptions)
         }
+
     }
 
 

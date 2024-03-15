@@ -192,6 +192,8 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
             transcriptions.clear()
             val transcription = Transcription(result, summarizedContent, translatedContent)
             transcriptions.add(transcription)
+            summarizedContent = ""
+            translatedContent = ""
 
             CoroutineScope(Dispatchers.IO).launch {
                 transcriptions.addAll(jsonManager.loadTranscriptions())
