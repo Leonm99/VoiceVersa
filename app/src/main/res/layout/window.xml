@@ -50,13 +50,6 @@
             android:focusableInTouchMode="false"
             android:orientation="vertical">
 
-            <Spinner
-                android:id="@+id/spinner2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:entries="@array/string_array_languages" />
-
             <FrameLayout
                 android:id="@+id/contentContainer"
                 android:layout_width="match_parent"

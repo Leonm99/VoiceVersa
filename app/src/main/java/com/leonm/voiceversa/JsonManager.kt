@@ -11,7 +11,7 @@ class JsonManager(private val context: Context) {
 
     fun loadTranscriptions(): List<Transcription> {
         try {
-            val file = File(context.filesDir, "transcriptions.json")
+            val file = File(context.filesDir, "Data.json")
             if (file.exists()) {
                 val jsonTranscriptions = file.readText()
                 return gson.fromJson(jsonTranscriptions, object : TypeToken<List<Transcription>>() {}.type)
@@ -25,7 +25,7 @@ class JsonManager(private val context: Context) {
     fun saveTranscriptions(transcriptions: List<Transcription>) {
         try {
             val jsonTranscriptions = gson.toJson(transcriptions)
-            val file = File(context.filesDir, "transcriptions.json")
+            val file = File(context.filesDir, "Data.json")
             file.writeText(jsonTranscriptions)
         } catch (e: IOException) {
             handleError(e)

@@ -20,7 +20,7 @@ data class Transcription(
 ) {
     companion object {
         private fun formatTimestamp(timestamp: Long): String {
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("MMMM dd, yyyy | hh:mm a", Locale.getDefault())
             return dateFormat.format(timestamp)
         }
     }
@@ -50,7 +50,9 @@ class TranscriptionAdapter(
         position: Int
     ) {
         val transcription = transcriptions[position]
+        val textTranscriptionContent = holder.textTranscriptionContent
         holder.bind(transcription)
+
 
         holder.deleteButton.setOnClickListener {
             onDeleteClickListener.onDeleteClick(transcription)
@@ -58,13 +60,30 @@ class TranscriptionAdapter(
 
 
         holder.itemView.setOnClickListener {
-            transcription.expanded = !transcription.expanded
-            notifyItemChanged(position)
+
+            if (textTranscriptionContent.maxHeight == holder.specifiedHeight) {
+                textTranscriptionContent.maxHeight = Int.MAX_VALUE
+                val params: ViewGroup.LayoutParams = textTranscriptionContent.layoutParams
+                params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                textTranscriptionContent.layoutParams = params
+            } else {
+                textTranscriptionContent.maxHeight = holder.specifiedHeight
+
+            }
+           // notifyItemChanged(position)
         }
 
         holder.textTranscriptionContent.setOnClickListener {
-            transcription.expanded = !transcription.expanded
-            notifyItemChanged(position)
+
+            if (textTranscriptionContent.maxHeight == holder.specifiedHeight) {
+                textTranscriptionContent.maxHeight = Int.MAX_VALUE
+                val params: ViewGroup.LayoutParams = textTranscriptionContent.layoutParams
+                params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                textTranscriptionContent.layoutParams = params
+            } else {
+                textTranscriptionContent.maxHeight = holder.specifiedHeight
+
+            }
         }
     }
 
@@ -72,31 +91,29 @@ class TranscriptionAdapter(
 
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
-        val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
-        val translationButton: Button = itemView.findViewById(R.id.translationButton)
-        private val contentLayout: LinearLayout = itemView.findViewById(R.id.contentLayout)
+        private val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
+        private val translationButton: Button = itemView.findViewById(R.id.translationButton)
+        private val contentLayout = itemView.findViewById<LinearLayout>(R.id.contentLayout)
+
         val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
         private val buttonHolder: LinearLayout = itemView.findViewById(R.id.button_holder)
+
+        val specifiedHeight = 300
+        // specify the maximum height
+
+        var measuredHeight: Int = textTranscriptionContent.measuredHeight
 
         fun bind(transcription: Transcription) {
             textTranscriptionContent.text = transcription.content
             textTranscriptionDate.text = transcription.formattedDateTime
 
-            val maxContentLength = 200
-            val contentLength = transcription.content.length
+         measuredHeight = textTranscriptionContent.measuredHeight
 
-            if (transcription.expanded || contentLength <= maxContentLength) {
-                textTranscriptionContent.layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-            } else {
-                textTranscriptionContent.layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    400
-                )
+         if (measuredHeight > specifiedHeight) {
+                textTranscriptionContent.maxHeight = specifiedHeight
             }
+
 
 
 
