@@ -69,8 +69,8 @@ class OpenAiHandler {
                         ChatMessage(
                             role = ChatRole.System,
                             content =
-                                "You will be provided with a transcription of a voice message," +
-                                    "and your task is to summarize it in the language its written in.",
+                                "You will be provided with a transcription," +
+                                    "and your task is to summarize it in the SAME language its written in.",
                         ),
                         ChatMessage(
                             role = ChatRole.User,
@@ -88,7 +88,7 @@ class OpenAiHandler {
     ): ChatCompletion {
 
         sharedPreferencesManager = SharedPreferencesManager(context)
-        val language = sharedPreferencesManager.loadData<String>("LANGUAGE_STRING", "English")
+        val language = sharedPreferencesManager.loadData<String>("LANGUAGE_STRING", "English").uppercase()
         val chatCompletionRequest =
 
             ChatCompletionRequest(
@@ -98,7 +98,7 @@ class OpenAiHandler {
                         ChatMessage(
                             role = ChatRole.System,
                             content =
-                                "You will be provided with a transcription of a voice message, " +
+                                "You will be provided with a transcription, " +
                                     "and your task is to translate it into $language.",
                         ),
                         ChatMessage(
@@ -117,20 +117,9 @@ class OpenAiHandler {
         outputFormat: String,
     ): Uri? {
         return try {
-            val outputPath = context.cacheDir.absolutePath + "/output.$outputFormat"
+            val outputPath = File(context.cacheDir, "output.$outputFormat").absolutePath
 
-            // FFmpeg command for audio conversion // This option makes FFmpeg overwrite the output file
-            val command =
-                arrayOf(
-                    "-y",
-                    "-i",
-                    inputUri.path,
-                    "-c:a",
-                    outputFormat,
-                    outputPath,
-                )
-
-            val result = FFmpeg.execute(command)
+            val result = FFmpeg.execute(arrayOf("-y", "-i", inputUri.path, "-c:a", outputFormat, outputPath))
 
             if (result == 0) {
                 Uri.fromFile(File(outputPath))

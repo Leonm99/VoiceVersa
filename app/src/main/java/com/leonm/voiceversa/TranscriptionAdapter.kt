@@ -20,7 +20,7 @@ data class Transcription(
 ) {
     companion object {
         private fun formatTimestamp(timestamp: Long): String {
-            val dateFormat = SimpleDateFormat("MMMM dd, yyyy | hh:mm a", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("MMMM dd, yyyy • hh:mm a", Locale.getDefault())
             return dateFormat.format(timestamp)
         }
     }
@@ -99,16 +99,16 @@ class TranscriptionAdapter(
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
         private val buttonHolder: LinearLayout = itemView.findViewById(R.id.button_holder)
 
-        val specifiedHeight = 300
+        val specifiedHeight = 200
         // specify the maximum height
 
-        var measuredHeight: Int = textTranscriptionContent.measuredHeight
+        var measuredHeight: Int = textTranscriptionContent.text.length
 
         fun bind(transcription: Transcription) {
             textTranscriptionContent.text = transcription.content
             textTranscriptionDate.text = transcription.formattedDateTime
 
-         measuredHeight = textTranscriptionContent.measuredHeight
+         measuredHeight = textTranscriptionContent.text.length
 
          if (measuredHeight > specifiedHeight) {
                 textTranscriptionContent.maxHeight = specifiedHeight

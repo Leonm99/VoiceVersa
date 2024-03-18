@@ -177,10 +177,10 @@ class Window(
             val openAiHandler = OpenAiHandler()
             val openAiResponse = openAiHandler.callOpenAI(context) ?: return@launch
             val translatedResponse = openAiHandler.translate(context, openAiResponse, originalText)
-            val translatedText = translatedResponse.choices[0].message.content
-            floatingService.setTranslation(translatedText!!)
+            val translatedText = translatedResponse.choices[0].message.content.toString()
+            floatingService.setTranslation(translatedText)
             launch(Dispatchers.Main) {
-                updateTextViewWithSlightlyUnevenTypingEffect(translatedText!!)
+                updateTextViewWithSlightlyUnevenTypingEffect(translatedText)
             }
         }
     }
