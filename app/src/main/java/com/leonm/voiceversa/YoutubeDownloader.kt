@@ -2,7 +2,6 @@ package com.leonm.voiceversa
 
 
 import android.content.Context
-import android.os.Environment
 import android.util.Log
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLException
@@ -13,7 +12,7 @@ import java.io.File
 class YoutubeDownloader {
 
 
-    fun downloadAudio(context: Context, youtubeLink: String) {
+    fun downloadAudio(context: Context, youtubeLink: String): String {
         try {
             YoutubeDL.getInstance().init(context)
         } catch (e: YoutubeDLException) {
@@ -21,11 +20,12 @@ class YoutubeDownloader {
         }
 
         val outputDir = File(
-            context.filesDir,
+            context.cacheDir,
             "youtubedl-android"
         )
+
         val request = YoutubeDLRequest(youtubeLink)
-        request.addOption("-o", outputDir.absolutePath + "/%(title)s.%(ext)s")
+        request.addOption("-o", outputDir.absolutePath + "/test.mp3")
         request.addOption("-f", "bestaudio/best")
         YoutubeDL.getInstance().execute(
             request,
@@ -33,6 +33,8 @@ class YoutubeDownloader {
                 println("$progress% (ETA $etaInSeconds seconds)")
             }.toString()
         )
+
+        return outputDir.absolutePath + "/test.mp3"
     }
 
 

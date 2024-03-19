@@ -235,7 +235,7 @@ class Window(
     }
 
     private fun displayTextWithSlightlyUnevenTiming(text: String) {
-        val delay = 15L
+        val delay = 5L
         val unevenFactor = 0.5
 
         GlobalScope.launch {
@@ -293,5 +293,13 @@ class Window(
         contentButton.isClickable = false
         summarizeButton.isClickable = false
         translationButton.isClickable = false
+    }
+
+    fun enableLoading() {
+        progressBar.visibility = View.VISIBLE
+    }
+
+    fun disableLoading() {
+        progressBar.visibility = View.GONE
     }
 }

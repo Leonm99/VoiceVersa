@@ -3,6 +3,7 @@ package com.leonm.voiceversa
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -24,16 +25,30 @@ class ReceiveIntentActivity : Activity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent?.action == Intent.ACTION_SEND && (intent.type?.startsWith("audio/") == true || intent.type?.startsWith("video/") == true)) {
-            val audioUri: Uri? = intent.getParcelableExtra(Intent.EXTRA_STREAM)
+            val audioUri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(Intent.EXTRA_STREAM)
+            }
 
             if (audioUri != null) {
                 val audioFile = saveToCache(audioUri)
                 if (audioFile != null) {
                     Handler(Looper.getMainLooper()).postDelayed({
-                        startFloatingService("START", audioFile.absolutePath)
+                        startFloatingService("TRANSCRIBE", audioFile.absolutePath)
                     }, 500)
                 }
             }
+        } else if (intent?.action == Intent.ACTION_SEND && (intent.type?.startsWith("text/") == true)){
+
+            val link = intent.extras?.getString(Intent.EXTRA_TEXT)
+            println("intent data: $link")
+
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                startFloatingService("DOWNLOAD", link!!)
+            }, 500)
         }
         finish()
     }
@@ -83,5 +98,3 @@ class ReceiveIntentActivity : Activity() {
         startForegroundService(intent)
     }
 }
-
-

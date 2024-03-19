@@ -22,8 +22,8 @@ import kotlin.coroutines.CoroutineContext
 
 const val INTENT_COMMAND = "com.example.voiceversa.COMMAND"
 const val INTENT_COMMAND_EXIT = "EXIT"
-const val INTENT_COMMAND_SHOW = "START"
-const val STRING_ARRAY = "ARRAY"
+const val INTENT_COMMAND_TRANSCRIBE = "TRANSCRIBE"
+const val INTENT_COMMAND_DOWNLOAD = "DOWNLOAD"
 
 private const val NOTIFICATION_CHANNEL_GENERAL = "voiceversa_general"
 private const val CODE_FOREGROUND_SERVICE = 1
@@ -59,51 +59,42 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         window = Window(applicationContext, this, this, coroutineContext)
 
         val command = intent?.getStringExtra(INTENT_COMMAND)
-        if (command == INTENT_COMMAND_SHOW) {
-            window?.open()
-            val isValid = SharedPreferencesManager(applicationContext).loadData("isApiKeyValid", "false").toBoolean()
-            if (!isValid) {
-                launch(Dispatchers.Main) {
-                    window?.updateTextViewWithSlightlyUnevenTypingEffect("Please enter a valid OpenAI API key in the settings.")
-                    window?.disableButtons()
+
+        window?.open()
+        val isValid = SharedPreferencesManager(applicationContext).loadData("isApiKeyValid", "false").toBoolean()
+
+        if (!isValid) {
+            launch(Dispatchers.Main) {
+                window?.updateTextViewWithSlightlyUnevenTypingEffect("Please enter a valid OpenAI API key in the settings.")
+                window?.disableButtons()
+            }
+        } else {
+
+            when (command) {
+                INTENT_COMMAND_TRANSCRIBE -> {
+
+                    transcribeFile(intent.getStringExtra("PATH")!!)
+
                 }
-            } else {
-                launch(Dispatchers.IO) {
-                    try {
-                        val localPath = intent.getStringExtra("PATH")
-                        val audioFileUri: Uri? = localPath?.let { Uri.fromFile(File(it)) }
-                        val convertedUri = audioFileUri?.let {
-                            OpenAiHandler().convertAudio(this@FloatingService, it, "mp3")
-                        }
 
-                        convertedUri?.let {
-                            val openAIResult = OpenAiHandler().callOpenAI(this@FloatingService) ?: return@launch
-                            val whisperResult = OpenAiHandler().whisper(openAIResult, it.path ?: return@launch)
-                            inputLanguage = whisperResult.language.toString()
-                            Log.d("FloatingService", "Language: $inputLanguage")
+                INTENT_COMMAND_DOWNLOAD -> {
 
-                            result = whisperResult.text
-                            filePath = it.path ?: return@launch
-
-                            window!!.enableButtons()
-                            launch(Dispatchers.Main) {
-                                window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
-                            }
-                        } ?: run {
-                            // Handle the conversion failure
-                        }
-                    } catch (e: Exception) {
-                        // Handle exceptions, log, or perform any necessary cleanup
-                        e.printStackTrace()
-                    } finally {
-                        // Clear the cache directory
-                        clearCacheDirectory()
+                    launch(Dispatchers.Main) {
+                        window?.updateTextViewWithSlightlyUnevenTypingEffect("Downloading file...")
+                        window?.enableLoading()
+                        window?.disableButtons()
+                        val tempfile = downloadFromLink(intent.getStringExtra("PATH")!!)
+                        transcribeFile(tempfile)
                     }
+
+                }
+
+                INTENT_COMMAND_EXIT -> {
+                    stopService()
+                    return START_NOT_STICKY
                 }
             }
-        } else if (command == INTENT_COMMAND_EXIT) {
-            stopService()
-            return START_NOT_STICKY
+
         }
 
         return super.onStartCommand(intent, flags, startId)
@@ -209,5 +200,47 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
 
     fun setTranslation(value: String) {
         translatedContent = value
+    }
+
+    private fun downloadFromLink(link: String): String {
+        val ytdl = YoutubeDownloader()
+        return ytdl.downloadAudio(this, link)
+    }
+
+    private fun transcribeFile(tempfile: String) {
+        launch(Dispatchers.IO) {
+            try {
+
+                val audioFileUri: Uri? = tempfile.let { Uri.fromFile(File(it)) }
+                val convertedUri = audioFileUri?.let {
+                    OpenAiHandler().convertAudio(this@FloatingService, it, "mp3")
+                }
+
+                convertedUri?.let {
+                    val openAIResult =
+                        OpenAiHandler().callOpenAI(this@FloatingService) ?: return@launch
+                    val whisperResult =
+                        OpenAiHandler().whisper(openAIResult, it.path ?: return@launch)
+                    inputLanguage = whisperResult.language.toString()
+                    Log.d("FloatingService", "Language: $inputLanguage")
+
+                    result = whisperResult.text
+                    filePath = it.path ?: return@launch
+
+                    window!!.enableButtons()
+                    launch(Dispatchers.Main) {
+                        window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
+                    }
+                } ?: run {
+                    // Handle the conversion failure
+                }
+            } catch (e: Exception) {
+                // Handle exceptions, log, or perform any necessary cleanup
+                e.printStackTrace()
+            } finally {
+                // Clear the cache directory
+                clearCacheDirectory()
+            }
+        }
     }
 }
