@@ -1,5 +1,6 @@
 package com.leonm.voiceversa
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,9 +28,13 @@ data class Transcription(
 }
 
 class TranscriptionAdapter(
+
     private val transcriptions: MutableList<Transcription>,
     private val onDeleteClickListener: OnDeleteClickListener
 ) : RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
+
+    val specifiedHeight = 230
+
     interface OnDeleteClickListener {
         fun onDeleteClick(transcription: Transcription)
     }
@@ -45,11 +50,14 @@ class TranscriptionAdapter(
         return TranscriptionViewHolder(view)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(
         holder: TranscriptionViewHolder,
         position: Int
     ) {
+
         val transcription = transcriptions[position]
+
         val textTranscriptionContent = holder.textTranscriptionContent
         holder.bind(transcription)
 
@@ -61,29 +69,32 @@ class TranscriptionAdapter(
 
         holder.itemView.setOnClickListener {
 
-            if (textTranscriptionContent.maxHeight == holder.specifiedHeight) {
+            if (textTranscriptionContent.maxHeight == specifiedHeight) {
+                textTranscriptionContent.text = transcription.content
                 textTranscriptionContent.maxHeight = Int.MAX_VALUE
                 val params: ViewGroup.LayoutParams = textTranscriptionContent.layoutParams
                 params.height = ViewGroup.LayoutParams.WRAP_CONTENT
                 textTranscriptionContent.layoutParams = params
             } else {
-                textTranscriptionContent.maxHeight = holder.specifiedHeight
-
+                textTranscriptionContent.maxHeight = specifiedHeight
+                textTranscriptionContent.text = transcription.content.take(specifiedHeight) + "..."
             }
-           // notifyItemChanged(position)
+
         }
 
         holder.textTranscriptionContent.setOnClickListener {
 
-            if (textTranscriptionContent.maxHeight == holder.specifiedHeight) {
+            if (textTranscriptionContent.maxHeight == specifiedHeight) {
+                textTranscriptionContent.text = transcription.content
                 textTranscriptionContent.maxHeight = Int.MAX_VALUE
                 val params: ViewGroup.LayoutParams = textTranscriptionContent.layoutParams
                 params.height = ViewGroup.LayoutParams.WRAP_CONTENT
                 textTranscriptionContent.layoutParams = params
             } else {
-                textTranscriptionContent.maxHeight = holder.specifiedHeight
-
+                textTranscriptionContent.maxHeight = specifiedHeight
+                textTranscriptionContent.text = transcription.content.take(specifiedHeight) + "..."
             }
+
         }
     }
 
@@ -93,26 +104,31 @@ class TranscriptionAdapter(
         val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
         private val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
         private val translationButton: Button = itemView.findViewById(R.id.translationButton)
-        private val contentLayout = itemView.findViewById<LinearLayout>(R.id.contentLayout)
+
 
         val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
         private val buttonHolder: LinearLayout = itemView.findViewById(R.id.button_holder)
 
-        val specifiedHeight = 200
+
         // specify the maximum height
 
         var measuredHeight: Int = textTranscriptionContent.text.length
 
         fun bind(transcription: Transcription) {
-            textTranscriptionContent.text = transcription.content
+
             textTranscriptionDate.text = transcription.formattedDateTime
 
-         measuredHeight = textTranscriptionContent.text.length
+         measuredHeight = transcription.content.length
 
          if (measuredHeight > specifiedHeight) {
+
+             textTranscriptionContent.text = transcription.content.take(specifiedHeight) + "..."
                 textTranscriptionContent.maxHeight = specifiedHeight
-            }
+
+            }else{
+             textTranscriptionContent.text = transcription.content
+         }
 
 
 
@@ -143,12 +159,6 @@ class TranscriptionAdapter(
             }
         }
 
-        private fun calculateCardViewHeight(contentLength: Int, maxContentLength: Int, maxExpandedHeight: Int, isExpanded: Boolean): Int {
-            return if (contentLength < maxContentLength || isExpanded) {
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            } else {
-                maxExpandedHeight
-            }
-        }
+
     }
 }
