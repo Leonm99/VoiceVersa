@@ -1,5 +1,6 @@
 package com.leonm.voiceversa
 
+
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import java.text.SimpleDateFormat
 import java.util.Locale
+
 
 data class Transcription(
     val content: String,
@@ -27,138 +29,104 @@ data class Transcription(
     }
 }
 
-class TranscriptionAdapter(
 
+class TranscriptionAdapter(
     private val transcriptions: MutableList<Transcription>,
     private val onDeleteClickListener: OnDeleteClickListener
 ) : RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
 
-    val specifiedHeight = 230
+  
+    companion object {
+        private const val SPECIFIED_HEIGHT = 230
+    }
 
     interface OnDeleteClickListener {
         fun onDeleteClick(transcription: Transcription)
     }
 
 
-
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int,
-    ): TranscriptionViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TranscriptionViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.item_transcription, parent, false)
         return TranscriptionViewHolder(view)
     }
 
-    @SuppressLint("SetTextI18n")
-    override fun onBindViewHolder(
-        holder: TranscriptionViewHolder,
-        position: Int
-    ) {
-
-        val transcription = transcriptions[position]
-
-        val textTranscriptionContent = holder.textTranscriptionContent
-        holder.bind(transcription)
-
-
-        holder.deleteButton.setOnClickListener {
-            onDeleteClickListener.onDeleteClick(transcription)
-        }
-
-
-        holder.itemView.setOnClickListener {
-
-            if (textTranscriptionContent.maxHeight == specifiedHeight) {
-                textTranscriptionContent.text = transcription.content
-                textTranscriptionContent.maxHeight = Int.MAX_VALUE
-                val params: ViewGroup.LayoutParams = textTranscriptionContent.layoutParams
-                params.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                textTranscriptionContent.layoutParams = params
-            } else {
-                textTranscriptionContent.maxHeight = specifiedHeight
-                textTranscriptionContent.text = transcription.content.take(specifiedHeight) + "..."
-            }
-
-        }
-
-        holder.textTranscriptionContent.setOnClickListener {
-
-            if (textTranscriptionContent.maxHeight == specifiedHeight) {
-                textTranscriptionContent.text = transcription.content
-                textTranscriptionContent.maxHeight = Int.MAX_VALUE
-                val params: ViewGroup.LayoutParams = textTranscriptionContent.layoutParams
-                params.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                textTranscriptionContent.layoutParams = params
-            } else {
-                textTranscriptionContent.maxHeight = specifiedHeight
-                textTranscriptionContent.text = transcription.content.take(specifiedHeight) + "..."
-            }
-
-        }
+    override fun onBindViewHolder(holder: TranscriptionViewHolder, position: Int) {
+        holder.bind(transcriptions[position])
     }
 
     override fun getItemCount(): Int = transcriptions.size
 
+ 
+
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
+        internal val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
         private val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
         private val translationButton: Button = itemView.findViewById(R.id.translationButton)
-
-
-        val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
+        private val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
         private val buttonHolder: LinearLayout = itemView.findViewById(R.id.button_holder)
-
-
-        // specify the maximum height
-
-        var measuredHeight: Int = textTranscriptionContent.text.length
-
-        fun bind(transcription: Transcription) {
-
-            textTranscriptionDate.text = transcription.formattedDateTime
-
-         measuredHeight = transcription.content.length
-
-         if (measuredHeight > specifiedHeight) {
-
-             textTranscriptionContent.text = transcription.content.take(specifiedHeight) + "..."
-                textTranscriptionContent.maxHeight = specifiedHeight
-
-            }else{
-             textTranscriptionContent.text = transcription.content
-         }
-
-
-
-
-            val summaryAvailable = transcription.summarizedContent.isNotEmpty()
-            val translationAvailable = transcription.translatedContent.isNotEmpty()
-
-            if (summaryAvailable || translationAvailable) {
-                summarizeButton.isClickable = summaryAvailable
-                summarizeButton.visibility = if (summaryAvailable) View.VISIBLE else View.GONE
-
-                translationButton.isClickable = translationAvailable
-                translationButton.visibility = if (translationAvailable) View.VISIBLE else View.GONE
-            } else {
-                buttonHolder.visibility = View.GONE
+       
+        init {
+            itemView.setOnClickListener {
+                toggleExpanded()
             }
-
-            summarizeButton.setOnClickListener {
-                if (summaryAvailable) {
-                    textTranscriptionContent.text = transcription.summarizedContent
-                }
+            
+            textTranscriptionContent.setOnClickListener {
+                toggleExpanded()
             }
+            
+            deleteButton.setOnClickListener {
+                onDeleteClickListener.onDeleteClick(transcriptions[bindingAdapterPosition])
+            }
+            
+        }
 
-            translationButton.setOnClickListener {
-                if (translationAvailable) {
-                    textTranscriptionContent.text = transcription.translatedContent
+        @SuppressLint("SetTextI18n")
+        private fun toggleExpanded() {
+            val transcription = transcriptions[bindingAdapterPosition]
+            with(textTranscriptionContent) {
+                if (maxHeight == SPECIFIED_HEIGHT) {
+                    text = transcription.content
+                    maxHeight = Int.MAX_VALUE
+                    layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                } else {
+                    text = transcription.content.take(SPECIFIED_HEIGHT) + "..."
+                    maxHeight = SPECIFIED_HEIGHT
                 }
             }
         }
 
+        @SuppressLint("SetTextI18n")
+        fun bind(transcription: Transcription) {
+            textTranscriptionDate.text = transcription.formattedDateTime
+            textTranscriptionContent.text = transcription.content.take(SPECIFIED_HEIGHT) + "..."
+            textTranscriptionContent.maxHeight = SPECIFIED_HEIGHT
 
+            val summaryAvailable = transcription.summarizedContent.isNotEmpty()
+            val translationAvailable = transcription.translatedContent.isNotEmpty()
+
+            summarizeButton.apply {
+                isClickable = summaryAvailable
+                visibility = if (summaryAvailable) View.VISIBLE else View.GONE
+                setOnClickListener {
+                    if (summaryAvailable) {
+                        textTranscriptionContent.text = transcription.summarizedContent
+                    }
+                }
+            }
+
+            translationButton.apply {
+                isClickable = translationAvailable
+                visibility = if (translationAvailable) View.VISIBLE else View.GONE
+                setOnClickListener {
+                    if (translationAvailable) {
+                        textTranscriptionContent.text = transcription.translatedContent
+                    }
+                }
+            }
+
+            buttonHolder.visibility = if (summaryAvailable || translationAvailable) View.VISIBLE else View.GONE
+        }
     }
 }

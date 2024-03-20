@@ -1,5 +1,6 @@
 package com.leonm.voiceversa
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -39,7 +40,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
+    ): View {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         jsonManager = JsonManager(requireContext())
         recyclerView = binding.recyclerView
@@ -63,15 +64,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         _binding = null
     }
 
-    override fun onDeleteClick(transcription: Transcription) {
-        val position = transcriptions.indexOf(transcription)
-        if (position != -1) {
-            transcriptions.removeAt(position)
-            recyclerView.adapter?.notifyItemRemoved(position)
-            jsonManager.saveTranscriptions(transcriptions)
-        }
 
-    }
 
 
 
@@ -108,6 +101,17 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         }
     }
 
+    override fun onDeleteClick(transcription: Transcription) {
+        val position = transcriptions.indexOf(transcription)
+        if (position != -1) {
+            transcriptions.removeAt(position)
+            recyclerView.adapter?.notifyItemRemoved(position)
+            jsonManager.saveTranscriptions(transcriptions)
+        }
+
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
     private suspend fun updateOutputText() {
         withContext(Dispatchers.Main) {
             recyclerView.adapter?.notifyDataSetChanged()
@@ -124,6 +128,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         jsonManager.saveTranscriptions(transcriptions) // Replace with the actual path
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun reloadData() {
         transcriptions.clear()
         transcriptions.addAll(jsonManager.loadTranscriptions())

@@ -242,7 +242,7 @@ class Window(
             while (charIndex <= text.length && continueTextAnimation) {
                 newText = text.substring(0, charIndex)
                 withContext(Dispatchers.Main) {
-                    textView.setText(newText)
+                    textView.text = newText
                 }
                 charIndex++
                 val nextDelay =
@@ -254,7 +254,7 @@ class Window(
 
     private fun stopTextAnimation() {
         continueTextAnimation = false
-        textView.setText(originalText)
+        textView.text = originalText
     }
 
     private fun getCurrentDisplayMetrics() {
@@ -299,7 +299,5 @@ class Window(
         progressBar.visibility = View.VISIBLE
     }
 
-    fun disableLoading() {
-        progressBar.visibility = View.GONE
-    }
+
 }
