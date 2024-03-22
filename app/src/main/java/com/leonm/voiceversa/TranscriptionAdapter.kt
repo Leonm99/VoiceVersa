@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +21,8 @@ data class Transcription(
     val timestamp: Long = System.currentTimeMillis(),
     val formattedDateTime: String = formatTimestamp(timestamp),
     var expanded: Boolean = false,
+    var isSelected: Boolean = false,
+    var isInSelectionMode: Boolean = false
 ) {
     companion object {
         private fun formatTimestamp(timestamp: Long): String {
@@ -35,14 +38,19 @@ class TranscriptionAdapter(
     private val onDeleteClickListener: OnDeleteClickListener
 ) : RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
 
-  
+
     companion object {
         private const val SPECIFIED_HEIGHT = 230
+
+        var selectedItemsCount = 0
     }
+
+
 
     interface OnDeleteClickListener {
         fun onDeleteClick(transcription: Transcription)
     }
+
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TranscriptionViewHolder {
@@ -60,24 +68,50 @@ class TranscriptionAdapter(
  
 
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        internal val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
+        private val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
         private val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
         private val translationButton: Button = itemView.findViewById(R.id.translationButton)
         private val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
         private val buttonHolder: LinearLayout = itemView.findViewById(R.id.button_holder)
+        private val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
        
         init {
             itemView.setOnClickListener {
                 toggleExpanded()
             }
+
             
             textTranscriptionContent.setOnClickListener {
                 toggleExpanded()
             }
-            
+
             deleteButton.setOnClickListener {
-                onDeleteClickListener.onDeleteClick(transcriptions[bindingAdapterPosition])
+                val transcription = transcriptions[bindingAdapterPosition]
+                if (!transcription.isInSelectionMode) {
+                    onDeleteClickListener.onDeleteClick(transcriptions[bindingAdapterPosition])
+                }
+
+            }
+
+            deleteButton.setOnLongClickListener {
+                val transcription = transcriptions[bindingAdapterPosition]
+                transcription.isInSelectionMode = !transcription.isInSelectionMode
+
+                // Update checkbox visibility for all items
+                transcriptions.forEach { it.isInSelectionMode = transcription.isInSelectionMode }
+
+                notifyDataSetChanged()
+                true
+            }
+
+
+
+
+            checkBox.setOnClickListener {
+                val transcription = transcriptions[bindingAdapterPosition]
+                transcription.isSelected = !transcription.isSelected
+
             }
             
         }
@@ -102,6 +136,13 @@ class TranscriptionAdapter(
             textTranscriptionDate.text = transcription.formattedDateTime
             textTranscriptionContent.text = transcription.content.take(SPECIFIED_HEIGHT) + "..."
             textTranscriptionContent.maxHeight = SPECIFIED_HEIGHT
+
+            //transcriptions.forEach { it.isInSelectionMode = false }
+
+            checkBox.visibility = View.GONE
+            deleteButton.visibility = View.VISIBLE
+            checkBox.visibility = if (transcription.isInSelectionMode) View.VISIBLE else View.GONE
+            deleteButton.visibility = if (transcription.isInSelectionMode) View.GONE else View.VISIBLE
 
             val summaryAvailable = transcription.summarizedContent.isNotEmpty()
             val translationAvailable = transcription.translatedContent.isNotEmpty()

@@ -1,6 +1,7 @@
 <!-- item_transcription.xml -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     style="@style/MyCardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -12,6 +13,15 @@
     app:cardUseCompatPadding="true"
     app:strokeColor="@android:color/transparent"
     app:strokeWidth="0dp">
+
+    <CheckBox
+        android:id="@+id/checkBox"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="end"
+        android:clickable="true"
+        android:visibility="gone"
+        tools:visibility="gone" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/deleteButton"
@@ -37,7 +47,7 @@
 
             <LinearLayout
                 android:id="@+id/contentLayout"
-                android:layout_width="match_parent"
+                android:layout_width="350dp"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
@@ -56,15 +66,14 @@
                     android:id="@+id/textTranscriptionContent"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
                     android:fontFamily="@font/roboto"
-                    android:ellipsize="end"
                     android:maxLines="3"
                     android:paddingTop="5dp"
                     android:text="@string/Placeholder"
                     android:textIsSelectable="true" />
-
 
 
             </LinearLayout>

@@ -19,6 +19,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -234,16 +235,17 @@ class Window(
         displayTextWithSlightlyUnevenTiming(originalText)
     }
 
+
+    @OptIn(DelicateCoroutinesApi::class)
     private fun displayTextWithSlightlyUnevenTiming(text: String) {
         val delay = 5L
         val unevenFactor = 0.5
 
         GlobalScope.launch {
+            var charIndex = 0
             while (charIndex <= text.length && continueTextAnimation) {
-                newText = text.substring(0, charIndex)
-                withContext(Dispatchers.Main) {
-                    textView.text = newText
-                }
+                val newText = text.substring(0, charIndex)
+                textView.text = newText
                 charIndex++
                 val nextDelay =
                     (delay * (1 + (Math.random() - 0.5) * 2 * unevenFactor)).toLong()

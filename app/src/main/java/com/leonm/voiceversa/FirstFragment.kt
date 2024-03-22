@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,6 +36,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
     private lateinit var jsonManager: JsonManager
     private lateinit var recyclerView: RecyclerView
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,6 +72,28 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
 
     private fun setupClickListeners() {
+        binding.myButton.setOnClickListener {
+            try {
+                val selectedPositions = transcriptions.filter { it.isSelected }.map { transcriptions.indexOf(it) }
+
+
+                for (position in selectedPositions.reversed()) {
+                    Log.d("FirstFragment", "Deleting item at position $position")
+                    transcriptions.removeAt(position)
+                    recyclerView.adapter?.notifyItemRemoved(position)
+                }
+
+                transcriptions.forEach { it.isInSelectionMode = false }
+                transcriptions.forEach { it.isInSelectionMode = false }
+
+                jsonManager.saveTranscriptions(transcriptions)
+
+            }catch (e: Exception) {
+                handleError(e)
+            }
+
+        }
+
         binding.fab.setOnClickListener {
             lifecycleScope.launch {
                 try {
