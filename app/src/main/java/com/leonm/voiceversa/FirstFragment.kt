@@ -56,35 +56,37 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     ) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupClickListeners()
-        setupRecyclerView()
+        val tAdapter = TranscriptionAdapter(transcriptions, this)
 
 
-    }
+        if (recyclerView.adapter == null) {
+            transcriptions.clear()
+            transcriptions.addAll(jsonManager.loadTranscriptions())
+            transcriptions.sortByDescending { it.timestamp }
+            recyclerView.adapter = tAdapter
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
+            recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        }
 
 
 
-
-
-    private fun setupClickListeners() {
         binding.myButton.setOnClickListener {
             try {
-                val selectedPositions = transcriptions.filter { it.isSelected }.map { transcriptions.indexOf(it) }
 
+                var selectedItems = tAdapter.getSelectedItems().toMutableList()
+                Log.d("FirstFragment", "Selected items: $selectedItems")
 
-                for (position in selectedPositions.reversed()) {
-                    Log.d("FirstFragment", "Deleting item at position $position")
-                    transcriptions.removeAt(position)
-                    recyclerView.adapter?.notifyItemRemoved(position)
+                for (position in selectedItems.reversed()) {
+                    if (selectedItems.contains(position)) {
+                        Log.d("FirstFragment", "Deleting item at position $position")
+                        transcriptions.removeAt(position)
+                        selectedItems.removeAt(selectedItems.indexOf(position))
+                        tAdapter.setSelectedItems(selectedItems)
+                        recyclerView.adapter?.notifyItemRemoved(position)
+                    }
+
                 }
 
-                transcriptions.forEach { it.isInSelectionMode = false }
-                transcriptions.forEach { it.isInSelectionMode = false }
 
                 jsonManager.saveTranscriptions(transcriptions)
 
@@ -109,22 +111,24 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
                 }
             }
         }
+
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+
+
+
+
 
     override fun onResume() {
         super.onResume()
         reloadData()
     }
 
-    private fun setupRecyclerView() {
-        if (recyclerView.adapter == null) {
-            transcriptions.clear()
-            transcriptions.addAll(jsonManager.loadTranscriptions())
-            transcriptions.sortByDescending { it.timestamp }
-            recyclerView.adapter = TranscriptionAdapter(transcriptions, this)
-            recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        }
-    }
 
     override fun onDeleteClick(transcription: Transcription) {
         val position = transcriptions.indexOf(transcription)

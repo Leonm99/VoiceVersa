@@ -20,9 +20,7 @@ data class Transcription(
     val translatedContent: String,
     val timestamp: Long = System.currentTimeMillis(),
     val formattedDateTime: String = formatTimestamp(timestamp),
-    var expanded: Boolean = false,
-    var isSelected: Boolean = false,
-    var isInSelectionMode: Boolean = false
+    var expanded: Boolean = false
 ) {
     companion object {
         private fun formatTimestamp(timestamp: Long): String {
@@ -38,11 +36,13 @@ class TranscriptionAdapter(
     private val onDeleteClickListener: OnDeleteClickListener
 ) : RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
 
+    private val selectedItems = mutableSetOf<Int>()
+    private var isInSelectionMode = false
 
     companion object {
         private const val SPECIFIED_HEIGHT = 230
 
-        var selectedItemsCount = 0
+
     }
 
 
@@ -65,8 +65,15 @@ class TranscriptionAdapter(
 
     override fun getItemCount(): Int = transcriptions.size
 
- 
 
+    fun getSelectedItems(): List<Int> {
+        return selectedItems.toList()
+    }
+
+    fun setSelectedItems(items: List<Int>) {
+        this.selectedItems.clear()
+        this.selectedItems.addAll(items)
+    }
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
         private val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
@@ -81,39 +88,56 @@ class TranscriptionAdapter(
                 toggleExpanded()
             }
 
+            itemView.setOnLongClickListener {
+                toggleSelectionMode(true)
+                true // consume the long click
+            }
+
             
             textTranscriptionContent.setOnClickListener {
                 toggleExpanded()
             }
 
-            deleteButton.setOnClickListener {
-                val transcription = transcriptions[bindingAdapterPosition]
-                if (!transcription.isInSelectionMode) {
-                    onDeleteClickListener.onDeleteClick(transcriptions[bindingAdapterPosition])
-                }
-
-            }
-
-            deleteButton.setOnLongClickListener {
-                val transcription = transcriptions[bindingAdapterPosition]
-                transcription.isInSelectionMode = !transcription.isInSelectionMode
-
-                // Update checkbox visibility for all items
-                transcriptions.forEach { it.isInSelectionMode = transcription.isInSelectionMode }
-
-                notifyDataSetChanged()
+            textTranscriptionContent.setOnLongClickListener {
+                toggleSelectionMode(true)
                 true
             }
+
+            deleteButton.setOnClickListener {
+
+                    onDeleteClickListener.onDeleteClick(transcriptions[bindingAdapterPosition])
+
+
+            }
+
 
 
 
 
             checkBox.setOnClickListener {
                 val transcription = transcriptions[bindingAdapterPosition]
-                transcription.isSelected = !transcription.isSelected
+                toggleSelection(transcriptions.indexOf(transcription))
 
             }
+
+
             
+        }
+
+
+        private fun toggleSelection(position: Int) {
+            if (selectedItems.contains(position)) {
+                selectedItems.remove(position)
+            } else {
+                selectedItems.add(position)
+            }
+            notifyDataSetChanged()
+        }
+
+
+        private fun toggleSelectionMode(mode: Boolean) {
+            isInSelectionMode = mode
+            notifyDataSetChanged()
         }
 
         @SuppressLint("SetTextI18n")
@@ -139,10 +163,15 @@ class TranscriptionAdapter(
 
             //transcriptions.forEach { it.isInSelectionMode = false }
 
-            checkBox.visibility = View.GONE
-            deleteButton.visibility = View.VISIBLE
-            checkBox.visibility = if (transcription.isInSelectionMode) View.VISIBLE else View.GONE
-            deleteButton.visibility = if (transcription.isInSelectionMode) View.GONE else View.VISIBLE
+            if (isInSelectionMode) {
+                checkBox.visibility = View.VISIBLE
+                checkBox.isChecked = selectedItems.contains(bindingAdapterPosition)
+                deleteButton.visibility = View.GONE
+            } else {
+                checkBox.visibility = View.GONE
+                deleteButton.visibility = View.VISIBLE
+            }
+
 
             val summaryAvailable = transcription.summarizedContent.isNotEmpty()
             val translationAvailable = transcription.translatedContent.isNotEmpty()
