@@ -37,11 +37,14 @@ class SharedPreferencesManager(val context: Context?) {
             .build()
 
         val response: Response = withContext(Dispatchers.IO) {
-            client.newCall(request).execute()
+            client.newCall(request).execute().use { it }
         }
 
-        val isApiKeyValid = apiKey.length == 51 && response.isSuccessful
+        val success = response.isSuccessful
+
+        val isApiKeyValid = apiKey.length == 51 && success
         saveData("isApiKeyValid", isApiKeyValid)
+
         return isApiKeyValid
     }
 }

@@ -27,6 +27,9 @@ import java.io.IOException
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
+
+
+
 class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     @Suppress("ktlint:standard:property-naming")
     private var _binding: FragmentFirstBinding? = null
@@ -38,6 +41,10 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     private lateinit var recyclerView: RecyclerView
 
 
+    lateinit var mainActivity: MainActivity
+    lateinit var tAdapter: TranscriptionAdapter
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,6 +54,10 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         jsonManager = JsonManager(requireContext())
         recyclerView = binding.recyclerView
+
+
+        mainActivity = (activity as? MainActivity)!!
+        tAdapter = TranscriptionAdapter(transcriptions, this, mainActivity!!)
         return binding.root
     }
 
@@ -56,7 +67,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     ) {
         super.onViewCreated(view, savedInstanceState)
 
-        val tAdapter = TranscriptionAdapter(transcriptions, this)
+
+
 
 
         if (recyclerView.adapter == null) {
@@ -71,29 +83,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
 
         binding.myButton.setOnClickListener {
-            try {
-
-                var selectedItems = tAdapter.getSelectedItems().toMutableList()
-                Log.d("FirstFragment", "Selected items: $selectedItems")
-
-                for (position in selectedItems.reversed()) {
-                    if (selectedItems.contains(position)) {
-                        Log.d("FirstFragment", "Deleting item at position $position")
-                        transcriptions.removeAt(position)
-                        selectedItems.removeAt(selectedItems.indexOf(position))
-                        tAdapter.setSelectedItems(selectedItems)
-                        recyclerView.adapter?.notifyItemRemoved(position)
-                    }
-
-                }
-
-
-                jsonManager.saveTranscriptions(transcriptions)
-
-            }catch (e: Exception) {
-                handleError(e)
-            }
-
+          deleteMultiple()
         }
 
         binding.fab.setOnClickListener {
@@ -111,6 +101,9 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
                 }
             }
         }
+
+
+
 
     }
 
@@ -136,6 +129,35 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
             transcriptions.removeAt(position)
             recyclerView.adapter?.notifyItemRemoved(position)
             jsonManager.saveTranscriptions(transcriptions)
+        }
+
+    }
+
+
+
+
+    fun deleteMultiple(){
+        try {
+
+            var selectedItems = tAdapter.getSelectedItems().toMutableList()
+            Log.d("FirstFragment", "Selected items: $selectedItems")
+
+            for (position in selectedItems.reversed()) {
+                if (selectedItems.contains(position)) {
+                    Log.d("FirstFragment", "Deleting item at position $position")
+                    transcriptions.removeAt(position)
+                    selectedItems.removeAt(selectedItems.indexOf(position))
+                    tAdapter.setSelectedItems(selectedItems)
+                    recyclerView.adapter?.notifyItemRemoved(position)
+                }
+
+            }
+
+
+            jsonManager.saveTranscriptions(transcriptions)
+
+        }catch (e: Exception) {
+            handleError(e)
         }
 
     }

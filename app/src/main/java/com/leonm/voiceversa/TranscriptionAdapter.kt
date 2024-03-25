@@ -2,6 +2,7 @@ package com.leonm.voiceversa
 
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,13 +32,19 @@ data class Transcription(
 }
 
 
+
 class TranscriptionAdapter(
     private val transcriptions: MutableList<Transcription>,
-    private val onDeleteClickListener: OnDeleteClickListener
+    private val onDeleteClickListener: OnDeleteClickListener,
+    mainActivity: MainActivity
 ) : RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
 
     private val selectedItems = mutableSetOf<Int>()
     private var isInSelectionMode = false
+
+
+
+    var mainActivity: MainActivity? = null
 
     companion object {
         private const val SPECIFIED_HEIGHT = 230
@@ -51,11 +58,15 @@ class TranscriptionAdapter(
         fun onDeleteClick(transcription: Transcription)
     }
 
-
+init {
+    this.mainActivity = mainActivity
+}
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TranscriptionViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.item_transcription, parent, false)
+
+
         return TranscriptionViewHolder(view)
     }
 
@@ -74,6 +85,8 @@ class TranscriptionAdapter(
         this.selectedItems.clear()
         this.selectedItems.addAll(items)
     }
+
+
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
         private val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
@@ -82,14 +95,19 @@ class TranscriptionAdapter(
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
         private val buttonHolder: LinearLayout = itemView.findViewById(R.id.button_holder)
         private val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
+
        
         init {
+
+
+
             itemView.setOnClickListener {
                 toggleExpanded()
             }
 
             itemView.setOnLongClickListener {
-                toggleSelectionMode(true)
+                toggleSelectionMode()
+
                 true // consume the long click
             }
 
@@ -99,7 +117,7 @@ class TranscriptionAdapter(
             }
 
             textTranscriptionContent.setOnLongClickListener {
-                toggleSelectionMode(true)
+                toggleSelectionMode()
                 true
             }
 
@@ -135,8 +153,9 @@ class TranscriptionAdapter(
         }
 
 
-        private fun toggleSelectionMode(mode: Boolean) {
-            isInSelectionMode = mode
+        private fun toggleSelectionMode() {
+            isInSelectionMode = !isInSelectionMode
+
             notifyDataSetChanged()
         }
 
@@ -163,13 +182,17 @@ class TranscriptionAdapter(
 
             //transcriptions.forEach { it.isInSelectionMode = false }
 
+
             if (isInSelectionMode) {
                 checkBox.visibility = View.VISIBLE
                 checkBox.isChecked = selectedItems.contains(bindingAdapterPosition)
                 deleteButton.visibility = View.GONE
+
             } else {
+
                 checkBox.visibility = View.GONE
                 deleteButton.visibility = View.VISIBLE
+
             }
 
 

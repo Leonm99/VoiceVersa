@@ -236,16 +236,16 @@ class Window(
     }
 
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun displayTextWithSlightlyUnevenTiming(text: String) {
         val delay = 5L
         val unevenFactor = 0.5
 
         GlobalScope.launch {
-            var charIndex = 0
             while (charIndex <= text.length && continueTextAnimation) {
-                val newText = text.substring(0, charIndex)
-                textView.text = newText
+                newText = text.substring(0, charIndex)
+                withContext(Dispatchers.Main) {
+                    textView.text = newText
+                }
                 charIndex++
                 val nextDelay =
                     (delay * (1 + (Math.random() - 0.5) * 2 * unevenFactor)).toLong()

@@ -13,10 +13,13 @@ import android.provider.Settings
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
@@ -24,12 +27,15 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.google.android.material.appbar.MaterialToolbar
 import com.leonm.voiceversa.databinding.ActivityMainBinding
 import kotlinx.coroutines.runBlocking
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity()  {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    private lateinit var defaultToolbar: MaterialToolbar
+
 
     @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,10 +54,18 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
+
+
+        defaultToolbar = binding.toolbar
+
+        defaultToolbar.findViewById<ImageButton>(R.id.delete_multi).visibility = View.VISIBLE
+        setSupportActionBar(defaultToolbar)
+
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
+
+
 
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
@@ -62,19 +76,32 @@ class MainActivity : AppCompatActivity() {
         } else {
             AppCompatDelegate.MODE_NIGHT_NO
         }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+        // Inflate the menu for multi-selection toolbar
+
+
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return NavigationUI.onNavDestinationSelected(
-            item,
-            findNavController(R.id.nav_host_fragment_content_main),
-        ) ||
+
+        return when (item.itemId) {
+            R.id.SecondFragment -> {
+                NavigationUI.onNavDestinationSelected(
+                    item,
+                    findNavController(R.id.nav_host_fragment_content_main),
+                )
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+
+
+
             super.onOptionsItemSelected(item)
     }
 
@@ -83,6 +110,9 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) ||
             super.onSupportNavigateUp()
     }
+
+
+
 
     override fun onResume() {
         super.onResume()
@@ -98,6 +128,8 @@ class MainActivity : AppCompatActivity() {
             firstFragment.reloadData()
         }
     }
+
+
 
     @Suppress("ktlint:standard:property-naming")
     private val REQUEST_ID_MULTIPLE_PERMISSIONS = 1
