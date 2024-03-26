@@ -2,6 +2,7 @@ package com.leonm.voiceversa
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -33,7 +34,8 @@ import java.io.IOException
 class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
     interface OnDeleteMultipleListener {
-        fun onDeleteMultiple()
+
+        fun deleteMultiple()
     }
 
     @Suppress("ktlint:standard:property-naming")
@@ -49,7 +51,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     lateinit var mainActivity: MainActivity
     lateinit var tAdapter: TranscriptionAdapter
 
-    private var onDeleteMultipleListener: OnDeleteMultipleListener? = null
+    var onDeleteMultipleListener: OnDeleteMultipleListener? = null
 
 
 
@@ -65,7 +67,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
         mainActivity = (activity as? MainActivity)!!
         tAdapter = TranscriptionAdapter(transcriptions, this, mainActivity!!)
-        onDeleteMultipleListener?.onDeleteMultiple()
+
 
         return binding.root
     }
@@ -146,9 +148,10 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
 
     fun deleteMultiple(){
+        Log.d("FirstFragment", "yeahwegrethere")
         try {
 
-            var selectedItems = tAdapter.getSelectedItems().toMutableList()
+            val selectedItems = tAdapter.getSelectedItems().toMutableList()
             Log.d("FirstFragment", "Selected items: $selectedItems")
 
             for (position in selectedItems.reversed()) {

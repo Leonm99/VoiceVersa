@@ -24,6 +24,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var defaultToolbar: MaterialToolbar
-
+    private lateinit var firstFragment: FirstFragment
 
     @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,12 +70,7 @@ class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener
 
 
 
-        defaultToolbar.findViewById<MaterialButton>(R.id.delete_multi).setOnClickListener(){
 
-               onDeleteMultiple()
-
-
-        }
 
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
@@ -84,6 +80,20 @@ class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener
 
         } else {
             AppCompatDelegate.MODE_NIGHT_NO
+        }
+
+
+
+
+            val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+            firstFragment = navHostFragment.childFragmentManager.primaryNavigationFragment as FirstFragment
+
+            firstFragment.onDeleteMultipleListener = this
+
+        // Inside your button click listener in MainActivity
+        defaultToolbar.findViewById<MaterialButton>(R.id.delete_multi).setOnClickListener() {
+            // This will trigger deleteMultiple() method in FirstFragment through the interface
+            firstFragment.onDeleteMultipleListener?.deleteMultiple()
         }
 
     }
@@ -123,20 +133,7 @@ class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener
 
 
 
-    override fun onResume() {
-        super.onResume()
 
-        Log.d("MainActivity", "onResume")
-        // Find the FirstFragment by tag
-        val firstFragment =
-            supportFragmentManager.findFragmentByTag("FirstFragment") as? FirstFragment
-        // Check if the fragment is not null and is added
-
-        if (firstFragment != null) {
-            Log.d("MainActivity", "reload")
-            firstFragment.reloadData()
-        }
-    }
 
 
 
@@ -357,15 +354,10 @@ class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener
             .show()
     }
 
-    override fun onDeleteMultiple() {
-        // Check if the firstFragment is initialized
+    override fun deleteMultiple() {
+        // onDeleteMultiple function is now called through the interface
+        Log.d("MainActivity", "onDeleteMultiple")
 
-            // Find the FirstFragment by tag
-           val firstFragment = supportFragmentManager.findFragmentByTag("FirstFragment") as? FirstFragment
-
-
-        // Check if the firstFragment is not null before calling its function
-        firstFragment?.deleteMultiple()
     }
 
 
