@@ -14,6 +14,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -28,10 +29,11 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
 import com.leonm.voiceversa.databinding.ActivityMainBinding
 import kotlinx.coroutines.runBlocking
 
-class MainActivity : AppCompatActivity()  {
+class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var defaultToolbar: MaterialToolbar
@@ -58,7 +60,7 @@ class MainActivity : AppCompatActivity()  {
 
         defaultToolbar = binding.toolbar
 
-        defaultToolbar.findViewById<ImageButton>(R.id.delete_multi).visibility = View.VISIBLE
+        defaultToolbar.findViewById<MaterialButton>(R.id.delete_multi).visibility = View.VISIBLE
         setSupportActionBar(defaultToolbar)
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
@@ -66,6 +68,13 @@ class MainActivity : AppCompatActivity()  {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
 
+
+        defaultToolbar.findViewById<MaterialButton>(R.id.delete_multi).setOnClickListener(){
+
+               onDeleteMultiple()
+
+
+        }
 
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
@@ -348,6 +357,16 @@ class MainActivity : AppCompatActivity()  {
             .show()
     }
 
+    override fun onDeleteMultiple() {
+        // Check if the firstFragment is initialized
+
+            // Find the FirstFragment by tag
+           val firstFragment = supportFragmentManager.findFragmentByTag("FirstFragment") as? FirstFragment
+
+
+        // Check if the firstFragment is not null before calling its function
+        firstFragment?.deleteMultiple()
+    }
 
 
 }

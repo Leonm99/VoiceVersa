@@ -31,6 +31,11 @@ import java.io.IOException
 
 
 class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
+
+    interface OnDeleteMultipleListener {
+        fun onDeleteMultiple()
+    }
+
     @Suppress("ktlint:standard:property-naming")
     private var _binding: FragmentFirstBinding? = null
     private val binding get() = _binding!!
@@ -43,6 +48,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
     lateinit var mainActivity: MainActivity
     lateinit var tAdapter: TranscriptionAdapter
+
+    private var onDeleteMultipleListener: OnDeleteMultipleListener? = null
 
 
 
@@ -58,6 +65,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
         mainActivity = (activity as? MainActivity)!!
         tAdapter = TranscriptionAdapter(transcriptions, this, mainActivity!!)
+        onDeleteMultipleListener?.onDeleteMultiple()
+
         return binding.root
     }
 
