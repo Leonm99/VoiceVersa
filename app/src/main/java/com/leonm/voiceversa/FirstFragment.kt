@@ -2,7 +2,6 @@ package com.leonm.voiceversa
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -11,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -33,10 +33,6 @@ import java.io.IOException
 
 class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
-    interface OnDeleteMultipleListener {
-
-        fun deleteMultiple()
-    }
 
     @Suppress("ktlint:standard:property-naming")
     private var _binding: FragmentFirstBinding? = null
@@ -51,7 +47,6 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     lateinit var mainActivity: MainActivity
     lateinit var tAdapter: TranscriptionAdapter
 
-    var onDeleteMultipleListener: OnDeleteMultipleListener? = null
 
 
 
@@ -66,7 +61,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
 
         mainActivity = (activity as? MainActivity)!!
-        tAdapter = TranscriptionAdapter(transcriptions, this, mainActivity!!)
+        tAdapter = TranscriptionAdapter(transcriptions, this, mainActivity)
 
 
         return binding.root
@@ -92,23 +87,49 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         }
 
 
+        tAdapter.onSelectionModeChangeListener = { isInSelectionMode ->
+            if (isInSelectionMode) {
+                // Change FAB icon to indicate multiselect mode
+                binding.fab.setImageResource(R.drawable.delete)
+            } else {
+                // Change FAB icon back to the original icon
+                binding.fab.setImageResource(R.drawable.add_fill)
+            }
+        }
 
-        binding.myButton.setOnClickListener {
-          deleteMultiple()
+
+        binding.testFab.setOnClickListener {
+            val transcription = Transcription(
+                resources.getString(R.string.lorem_ipsum),
+                "DAS IST DIE SUMMARY",
+                "DAS IST DIE TRANSLATION",
+                System.currentTimeMillis())
+
+            transcriptions.add(transcription)
+            recyclerView.adapter?.notifyDataSetChanged()
         }
 
         binding.fab.setOnClickListener {
-            lifecycleScope.launch {
-                try {
-                    // Launch a coroutine to perform openFileChooser
-                    val fileChooserDeferred = async { openFileChooser() }
+            if (tAdapter.isInSelectionMode) {
 
-                    // Wait for openFileChooser to finish
-                    fileChooserDeferred.await()
+                deleteMultiple()
+                // Handle multiselect mode action here
+                // For example, you can show a Toast message indicating multiselect mode is active
+                Toast.makeText(requireContext(), "Items deleted!", Toast.LENGTH_SHORT).show()
+            } else {
+                // Handle regular FAB action here
+                lifecycleScope.launch {
+                    try {
+                        // Launch a coroutine to perform openFileChooser
+                        val fileChooserDeferred = async { openFileChooser() }
 
-                    // Now that openFileChooser is done, proceed with performWhisperTranscription
-                } catch (e: Exception) {
-                    handleError(e)
+                        // Wait for openFileChooser to finish
+                        fileChooserDeferred.await()
+
+                        // Now that openFileChooser is done, proceed with performWhisperTranscription
+                    } catch (e: Exception) {
+                        handleError(e)
+                    }
                 }
             }
         }
@@ -147,7 +168,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
 
 
-    fun deleteMultiple(){
+    private fun deleteMultiple(){
         Log.d("FirstFragment", "yeahwegrethere")
         try {
 

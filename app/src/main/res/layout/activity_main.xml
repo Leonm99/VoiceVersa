@@ -22,24 +22,7 @@
             app:elevation="0dp"
             app:navigationIconTint="?attr/colorPrimary"
             app:subtitleTextColor="?attr/colorPrimary"
-            app:titleTextColor="?attr/colorPrimary">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/delete_multi"
-                style="?attr/materialIconButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                app:icon="@drawable/delete"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconTint="?attr/colorOnSecondaryContainer" />
-
-        </com.google.android.material.appbar.MaterialToolbar>
+            app:titleTextColor="?attr/colorPrimary"/>
 
 
 

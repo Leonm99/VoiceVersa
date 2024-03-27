@@ -10,35 +10,28 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.Button
-import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.button.MaterialButton
 import com.leonm.voiceversa.databinding.ActivityMainBinding
 import kotlinx.coroutines.runBlocking
 
-class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener {
+class MainActivity : AppCompatActivity(){
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var defaultToolbar: MaterialToolbar
-    private lateinit var firstFragment: FirstFragment
+
 
     @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,7 +54,7 @@ class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener
 
         defaultToolbar = binding.toolbar
 
-        defaultToolbar.findViewById<MaterialButton>(R.id.delete_multi).visibility = View.VISIBLE
+
         setSupportActionBar(defaultToolbar)
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
@@ -83,18 +76,6 @@ class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener
         }
 
 
-
-
-            val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
-            firstFragment = navHostFragment.childFragmentManager.primaryNavigationFragment as FirstFragment
-
-            firstFragment.onDeleteMultipleListener = this
-
-        // Inside your button click listener in MainActivity
-        defaultToolbar.findViewById<MaterialButton>(R.id.delete_multi).setOnClickListener() {
-            // This will trigger deleteMultiple() method in FirstFragment through the interface
-            firstFragment.onDeleteMultipleListener?.deleteMultiple()
-        }
 
     }
 
@@ -118,10 +99,6 @@ class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener
             }
             else -> super.onOptionsItemSelected(item)
         }
-
-
-
-            super.onOptionsItemSelected(item)
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -129,12 +106,6 @@ class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener
         return navController.navigateUp(appBarConfiguration) ||
             super.onSupportNavigateUp()
     }
-
-
-
-
-
-
 
 
     @Suppress("ktlint:standard:property-naming")
@@ -354,11 +325,6 @@ class MainActivity : AppCompatActivity(), FirstFragment.OnDeleteMultipleListener
             .show()
     }
 
-    override fun deleteMultiple() {
-        // onDeleteMultiple function is now called through the interface
-        Log.d("MainActivity", "onDeleteMultiple")
-
-    }
 
 
 }

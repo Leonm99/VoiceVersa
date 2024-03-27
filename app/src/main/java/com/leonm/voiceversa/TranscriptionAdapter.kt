@@ -2,7 +2,6 @@ package com.leonm.voiceversa
 
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -40,7 +39,8 @@ class TranscriptionAdapter(
 ) : RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
 
     private val selectedItems = mutableSetOf<Int>()
-    private var isInSelectionMode = false
+    var isInSelectionMode = false
+    var onSelectionModeChangeListener: ((Boolean) -> Unit)? = null
 
 
 
@@ -155,6 +155,7 @@ init {
 
         private fun toggleSelectionMode() {
             isInSelectionMode = !isInSelectionMode
+            onSelectionModeChangeListener?.invoke(isInSelectionMode)
 
             notifyDataSetChanged()
         }
