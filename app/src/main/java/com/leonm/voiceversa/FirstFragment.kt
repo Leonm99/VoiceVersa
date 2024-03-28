@@ -37,15 +37,17 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     @Suppress("ktlint:standard:property-naming")
     private var _binding: FragmentFirstBinding? = null
     private val binding get() = _binding!!
-    private val openAiHandler = OpenAiHandler()
+    private val openAiHandler by lazy { OpenAiHandler() }
     private val transcriptions = mutableListOf<Transcription>()
 
     private lateinit var jsonManager: JsonManager
     private lateinit var recyclerView: RecyclerView
 
 
-    lateinit var mainActivity: MainActivity
-    lateinit var tAdapter: TranscriptionAdapter
+    private lateinit var mainActivity: MainActivity
+    private lateinit var tAdapter: TranscriptionAdapter
+
+
 
 
 
@@ -99,14 +101,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
 
         binding.testFab.setOnClickListener {
-            val transcription = Transcription(
-                resources.getString(R.string.lorem_ipsum),
-                "DAS IST DIE SUMMARY",
-                "DAS IST DIE TRANSLATION",
-                System.currentTimeMillis())
-
-            transcriptions.add(transcription)
-            recyclerView.adapter?.notifyDataSetChanged()
+            saveTranscriptionToFile(resources.getString(R.string.lorem_ipsum),"DAS IST DIE SUMMARY","DAS IST DIE TRANSLATION")
+            reloadData()
         }
 
         binding.fab.setOnClickListener {
@@ -168,33 +164,25 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
 
 
-    private fun deleteMultiple(){
-        Log.d("FirstFragment", "yeahwegrethere")
+    private fun deleteMultiple() {
         try {
-
-            val selectedItems = tAdapter.getSelectedItems().toMutableList()
+            val selectedItems = tAdapter.getSelectedItems().sortedDescending()
             Log.d("FirstFragment", "Selected items: $selectedItems")
 
-            for (position in selectedItems.reversed()) {
-                if (selectedItems.contains(position)) {
+            selectedItems.forEach { position ->
+                if (position >= 0 && position < transcriptions.size) {
                     Log.d("FirstFragment", "Deleting item at position $position")
                     transcriptions.removeAt(position)
-                    selectedItems.removeAt(selectedItems.indexOf(position))
-                    tAdapter.setSelectedItems(selectedItems)
-                    recyclerView.adapter?.notifyItemRemoved(position)
                 }
-
             }
 
-
+            tAdapter.setSelectedItems(emptyList()) // Clear selected items
+            recyclerView.adapter?.notifyDataSetChanged()
             jsonManager.saveTranscriptions(transcriptions)
-
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             handleError(e)
         }
-
     }
-
     @SuppressLint("NotifyDataSetChanged")
     private suspend fun updateOutputText() {
         withContext(Dispatchers.Main) {
@@ -203,9 +191,9 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         // Notify the adapter that data set has changed
     }
 
-    private fun saveTranscriptionToFile(content: String) {
+    private fun saveTranscriptionToFile(content: String,summary: String, translation: String) {
         transcriptions.clear()
-        val transcription = Transcription(content,"","")
+        val transcription = Transcription(content,summary,translation)
         transcriptions.add(transcription)
 
         transcriptions.addAll(jsonManager.loadTranscriptions())
@@ -224,7 +212,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         try {
             showLoading(true)
             val result = openAiHandler.whisper(openAiHandler.callOpenAI(requireContext())!!, path!!).text
-            saveTranscriptionToFile(result)
+            saveTranscriptionToFile(result,"","")
             updateOutputText()
         } catch (e: Exception) {
             handleError(e)
