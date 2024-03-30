@@ -6,17 +6,22 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.coroutines.CoroutineContext
 
@@ -78,14 +83,29 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                 }
 
                 INTENT_COMMAND_DOWNLOAD -> {
+                    val ytdl = YoutubeDownloader()
+                    clearCacheDirectory()
 
-                    launch(Dispatchers.Main) {
-                        window?.updateTextViewWithSlightlyUnevenTypingEffect("Downloading file...")
-                        window?.enableLoading()
-                        window?.disableButtons()
-                        val tempfile = downloadFromLink(intent.getStringExtra("PATH")!!)
-                        transcribeFile(tempfile)
+                    launch(Dispatchers.IO) {
+                        val downloadJob = async { ytdl.downloadAudio(ContextWrapper(applicationContext), intent.getStringExtra("PATH")!!) }
+                        downloadJob.await()
+
+                        launch(Dispatchers.Main) {
+
+                            transcribeFile(File(ContextWrapper(applicationContext).cacheDir, "test.mp3").absolutePath)
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            window?.disableButtons()
+                            window?.updateTextViewWithSlightlyUnevenTypingEffect("Downloading file...")
+                            window?.enableLoading()
+
+                        }
                     }
+
+
+
+
 
                 }
 
@@ -202,10 +222,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         translatedContent = value
     }
 
-    private fun downloadFromLink(link: String): String {
-        val ytdl = YoutubeDownloader()
-        return ytdl.downloadAudio(this, link)
-    }
+
 
     private fun transcribeFile(tempfile: String) {
         launch(Dispatchers.IO) {

@@ -2,39 +2,27 @@ package com.leonm.voiceversa
 
 
 import android.content.Context
-import android.util.Log
 import com.yausername.youtubedl_android.YoutubeDL
-import com.yausername.youtubedl_android.YoutubeDLException
 import com.yausername.youtubedl_android.YoutubeDLRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
-
+import kotlin.concurrent.thread
 
 class YoutubeDownloader {
 
 
-    fun downloadAudio(context: Context, youtubeLink: String): String {
-        try {
-            YoutubeDL.getInstance().init(context)
-        } catch (e: YoutubeDLException) {
-            Log.e("YTDL", "Failed to initialize youtubedl-android", e)
-        }
 
-        val outputDir = File(
-            context.cacheDir,
-            "youtubedl-android"
-        )
 
+    suspend fun downloadAudio(context: Context, youtubeLink: String) = withContext(Dispatchers.IO) {
         val request = YoutubeDLRequest(youtubeLink)
-        request.addOption("-o", outputDir.absolutePath + "/test.mp3")
+        request.addOption("-o", File(context.cacheDir, "test.mp3").absolutePath)
         request.addOption("-f", "bestaudio/best")
-        YoutubeDL.getInstance().execute(
-            request,
-            { progress: Int, etaInSeconds: Int ->
-                println("$progress% (ETA $etaInSeconds seconds)")
-            }.toString()
-        )
 
-        return outputDir.absolutePath + "/test.mp3"
+        YoutubeDL.getInstance().init(context)
+        YoutubeDL.getInstance().execute(request) { progress, etaInSeconds, extraParam ->
+            println("$progress% (ETA $etaInSeconds seconds) - $extraParam")
+        }
     }
 
 
