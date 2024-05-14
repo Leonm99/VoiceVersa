@@ -34,8 +34,8 @@
 
     <style name="MyCardView" parent="AppTheme">
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        <item name="cardBackgroundColor">@color/md_theme_light_secondaryContainer</item>
-        <item name="android:textColor" >@color/md_theme_light_onSecondaryContainer</item>
+        <item name="cardBackgroundColor">@color/md_theme_light_primaryContainer</item>
+        <item name="android:textColor" >@color/md_theme_light_onPrimaryContainer</item>
         <item name="android:strokeWidth">0</item>
         <item name="android:strokeColor">@android:color/transparent</item>
     </style>
@@ -60,8 +60,8 @@
     </style>
 
     <style name="MyProgressBar" parent="Widget.AppCompat.ProgressBar">
-        <item name="android:progressTint">@color/md_theme_light_onSecondaryContainer</item>
-        <item name="android:indeterminateTint">@color/md_theme_light_onSecondaryContainer</item>
+        <item name="android:progressTint">@color/md_theme_dark_primaryContainer</item>
+        <item name="android:indeterminateTint">@color/md_theme_dark_primaryContainer</item>
     </style>
 
     <style name="headerTextStyle" parent="AppTheme">

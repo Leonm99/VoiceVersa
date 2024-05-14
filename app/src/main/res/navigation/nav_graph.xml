@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/FirstFragment"
         android:name="com.leonm.voiceversa.FirstFragment"
-        android:label="FirstFragment"
+        android:label="VoiceVersa"
         tools:layout="@layout/fragment_first">
 
         <action
