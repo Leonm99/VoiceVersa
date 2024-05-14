@@ -239,7 +239,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                     val whisperResult =
                         OpenAiHandler().whisper(openAIResult, it.path ?: return@launch)
                     inputLanguage = whisperResult.language.toString()
-                    Log.d("FloatingService", "Language: $inputLanguage")
+                    Log.d("FloatingService", "Input Language: $inputLanguage")
 
                     result = whisperResult.text
                     filePath = it.path ?: return@launch

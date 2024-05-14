@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity(){
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var defaultToolbar: MaterialToolbar
+    private var openAiHandler = OpenAiHandler()
+    private lateinit var sharedPreferencesManager : SharedPreferencesManager
 
 
     @SuppressLint("SuspiciousIndentation")
@@ -39,12 +41,24 @@ class MainActivity : AppCompatActivity(){
 
         checkAndRequestPermissions()
 
+        sharedPreferencesManager = SharedPreferencesManager(this)
 
         runBlocking {
-            val isValid = SharedPreferencesManager(this@MainActivity).isValidApiKey()
+
+            val apiKey =sharedPreferencesManager.loadData("API_KEY", "")
+            val isValid = openAiHandler.checkApiKey(apiKey)
+
             if (!isValid) {
+                sharedPreferencesManager.saveData("isApiKeyValid", false)
                 Toast.makeText(this@MainActivity, "Please a valid API key in settings!", Toast.LENGTH_SHORT).show()
+            } else {
+
+                sharedPreferencesManager.saveData("isApiKeyValid", true)
+                openAiHandler.getAvailableModels(this@MainActivity)
             }
+
+
+
         }
 
 

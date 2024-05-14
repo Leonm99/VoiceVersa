@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.aallam.openai.api.model.Model
 import com.leonm.voiceversa.databinding.FragmentFirstBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -129,7 +130,6 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
                 }
             }
         }
-
 
 
 

@@ -161,7 +161,7 @@ class Window(
         progressBar.visibility = View.VISIBLE
         launch(Dispatchers.IO) {
             val openAi = OpenAiHandler().callOpenAI(context) ?: return@launch
-            val chatCompletion = OpenAiHandler().summarize(openAi, originalText)
+            val chatCompletion = OpenAiHandler().summarize(context, openAi, originalText)
             val summary = chatCompletion.choices[0].message.content.toString()
             floatingService.setSummary(summary)
             launch(Dispatchers.Main) {
