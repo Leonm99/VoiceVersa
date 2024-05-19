@@ -237,11 +237,13 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                     val openAIResult =
                         OpenAiHandler().callOpenAI(this@FloatingService) ?: return@launch
                     val whisperResult =
-                        OpenAiHandler().whisper(openAIResult, it.path ?: return@launch)
-                    inputLanguage = whisperResult.language.toString()
+                        OpenAiHandler().whisper(this@FloatingService,openAIResult, it.path ?: return@launch)
+                    inputLanguage = whisperResult
                     Log.d("FloatingService", "Input Language: $inputLanguage")
 
-                    result = whisperResult.text
+                    val correctedText = OpenAiHandler().correctSpelling(this@FloatingService,openAIResult,whisperResult)
+
+                    result = correctedText
                     filePath = it.path ?: return@launch
 
                     window!!.enableButtons()

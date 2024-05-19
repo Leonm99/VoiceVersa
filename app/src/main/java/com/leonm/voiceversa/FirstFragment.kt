@@ -211,7 +211,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     private suspend fun performWhisperTranscription(path: String?) {
         try {
             showLoading(true)
-            val result = openAiHandler.whisper(openAiHandler.callOpenAI(requireContext())!!, path!!).text
+            val result = openAiHandler.whisper(requireContext(), openAiHandler.callOpenAI(requireContext())!!, path!!)
             saveTranscriptionToFile(result,"","")
             updateOutputText()
         } catch (e: Exception) {

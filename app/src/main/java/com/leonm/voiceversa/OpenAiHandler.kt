@@ -53,9 +53,10 @@ class OpenAiHandler {
     }
 
      suspend fun whisper(
+         context: Context,
         openAI: OpenAI,
         path: String = "",
-    ): Transcription {
+    ): String {
 
         println("\n>️ Create transcription...")
         val transcriptionRequest =
@@ -63,15 +64,20 @@ class OpenAiHandler {
                 audio = FileSource(path = path.toPath(), fileSystem = FileSystem.SYSTEM),
                 model = ModelId("whisper-1"),
             )
-
-        return openAI.transcription(transcriptionRequest)
+         sharedPreferencesManager = SharedPreferencesManager(context)
+         val useCorrection = sharedPreferencesManager.loadData("TOGGLE_SWITCH",false)
+         var result = openAI.transcription(transcriptionRequest).text
+         if(useCorrection){
+            result = correctSpelling(context,openAI,result)
+         }
+        return result
     }
 
     suspend fun summarize(
         context: Context,
         openai: OpenAI,
         userText: String = "",
-    ): ChatCompletion {
+    ): String {
 
         sharedPreferencesManager = SharedPreferencesManager(context)
         selectedModel = sharedPreferencesManager.loadData<String>("MODEL_STRING", "gpt-3.5-turbo")
@@ -96,14 +102,14 @@ class OpenAiHandler {
                     ),
             )
 
-        return openai.chatCompletion(chatCompletionRequest)
+        return openai.chatCompletion(chatCompletionRequest).choices[0].message.content.toString()
     }
 
     suspend fun translate(
         context: Context,
         openai: OpenAI,
         userText: String = "",
-    ): ChatCompletion {
+    ): String {
 
         sharedPreferencesManager = SharedPreferencesManager(context)
         selectedModel = sharedPreferencesManager.loadData<String>("MODEL_STRING", "gpt-3.5-turbo")
@@ -129,7 +135,38 @@ class OpenAiHandler {
                     ),
             )
 
-        return openai.chatCompletion(chatCompletionRequest)
+        return openai.chatCompletion(chatCompletionRequest).choices[0].message.content.toString()
+    }
+
+    suspend fun correctSpelling(
+        context: Context,
+        openai: OpenAI,
+        userText: String = "",
+    ): String {
+
+        sharedPreferencesManager = SharedPreferencesManager(context)
+        selectedModel = sharedPreferencesManager.loadData<String>("MODEL_STRING", "gpt-3.5-turbo")
+
+
+        val chatCompletionRequest =
+
+            ChatCompletionRequest(
+                model = ModelId(selectedModel.toString()),
+                messages =
+                listOf(
+                    ChatMessage(
+                        role = ChatRole.System,
+                        content =
+                        "You are a text bot and your task is to correct any spelling discrepancies in the transcribed text. ONLY add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. Use the same language the text is written in."
+                    ),
+                    ChatMessage(
+                        role = ChatRole.User,
+                        content = userText,
+                    ),
+                ),
+            )
+
+        return openai.chatCompletion(chatCompletionRequest).choices[0].message.content.toString()
     }
 
     fun convertAudio(

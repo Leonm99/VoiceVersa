@@ -91,6 +91,12 @@ class SecondFragment : Fragment(){
             Toast.makeText(requireContext(), "Selected: ${parent.getItemAtPosition(position)}", Toast.LENGTH_SHORT).show()
         }
 
+        val toggleSwitch = binding.switch1
+        toggleSwitch.isChecked = sharedPrefs.loadData("TOGGLE_SWITCH", false)
+        toggleSwitch.setOnCheckedChangeListener { _, isChecked -> sharedPrefs.saveData("TOGGLE_SWITCH", isChecked) }
+
+
+
         return binding.root
     }
 

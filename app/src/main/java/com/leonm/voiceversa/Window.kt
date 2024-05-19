@@ -161,8 +161,8 @@ class Window(
         progressBar.visibility = View.VISIBLE
         launch(Dispatchers.IO) {
             val openAi = OpenAiHandler().callOpenAI(context) ?: return@launch
-            val chatCompletion = OpenAiHandler().summarize(context, openAi, originalText)
-            val summary = chatCompletion.choices[0].message.content.toString()
+            val summary = OpenAiHandler().summarize(context, openAi, originalText)
+
             floatingService.setSummary(summary)
             launch(Dispatchers.Main) {
                 updateTextViewWithSlightlyUnevenTypingEffect(summary)
@@ -177,8 +177,8 @@ class Window(
         launch(Dispatchers.IO) {
             val openAiHandler = OpenAiHandler()
             val openAiResponse = openAiHandler.callOpenAI(context) ?: return@launch
-            val translatedResponse = openAiHandler.translate(context, openAiResponse, originalText)
-            val translatedText = translatedResponse.choices[0].message.content.toString()
+            val translatedText = openAiHandler.translate(context, openAiResponse, originalText)
+
             floatingService.setTranslation(translatedText)
             launch(Dispatchers.Main) {
                 updateTextViewWithSlightlyUnevenTypingEffect(translatedText)
