@@ -53,7 +53,7 @@
                 android:id="@+id/contentContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_margin="17dp"
+                android:layout_margin="13dp"
                 android:layout_weight="1"
                 android:minHeight="220dp">
 
@@ -84,9 +84,9 @@
                         android:focusable="false"
                         android:focusableInTouchMode="false"
                         android:fontFamily="@font/roboto"
-                        android:lineSpacingExtra="3dp"
-                        android:lineSpacingMultiplier="1.2"
-                        android:padding="8dp"
+                        android:lineSpacingExtra="1.5dp"
+                        android:lineSpacingMultiplier="1"
+                        android:padding="5dp"
                         android:textAlignment="viewStart"
                         android:textColor="?attr/colorOnSecondaryContainer"
                         android:textCursorDrawable="?android:attr/textCursorDrawable"

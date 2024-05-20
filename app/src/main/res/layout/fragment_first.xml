@@ -52,6 +52,6 @@
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="80dp"
         android:layout_marginBottom="16dp"
-        app:srcCompat="@android:drawable/ic_menu_send" />
+        app:srcCompat="@drawable/content_paste" />
 
 </FrameLayout>
