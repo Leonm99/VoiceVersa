@@ -13,9 +13,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:elevation="0dp"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="true"
+       >
 
-        <com.google.android.material.appbar.MaterialToolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -23,6 +24,8 @@
             app:navigationIconTint="?attr/colorPrimary"
             app:subtitleTextColor="?attr/colorPrimary"
             app:titleTextColor="?attr/colorPrimary"/>
+
+
 
 
 

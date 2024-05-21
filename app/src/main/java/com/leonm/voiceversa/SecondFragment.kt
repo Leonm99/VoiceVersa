@@ -32,6 +32,7 @@ class SecondFragment : Fragment(){
     private lateinit var buttonShowPassword: MaterialButton
     private var savedSelection: Int = 0
     private var savedModelSelection: Int = 0
+    private lateinit var sharedPreferencesManager: SharedPreferencesManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -122,6 +123,18 @@ class SecondFragment : Fragment(){
 
 
             }
+
+            val items = sharedPreferencesManager.loadData("MODEL_IDS", listOf(""))
+            val modelsAdapter = ArrayAdapter<Any?>(requireContext(), R.layout.dropdown_item, items)
+            val autoCompleteTextView2 = binding.autocompleteText2
+            autoCompleteTextView2.setAdapter(modelsAdapter)
+
+            savedModelSelection = sharedPreferencesManager.loadData("SELECTED_MODEL", "0").toInt()
+            autoCompleteTextView2.setText(items[savedModelSelection], false)
+
+            val savedApiKey = sharedPreferencesManager.loadData("API_KEY", "")
+            binding.editTextTextPassword.setText(savedApiKey)
+
         }
     }
 

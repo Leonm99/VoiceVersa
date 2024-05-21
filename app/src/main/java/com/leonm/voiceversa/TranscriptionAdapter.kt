@@ -86,6 +86,13 @@ init {
         this.selectedItems.addAll(items)
     }
 
+    fun toggleSelectionMode() {
+        isInSelectionMode = !isInSelectionMode
+        onSelectionModeChangeListener?.invoke(isInSelectionMode)
+
+        notifyDataSetChanged()
+    }
+
 
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
@@ -153,12 +160,7 @@ init {
         }
 
 
-        private fun toggleSelectionMode() {
-            isInSelectionMode = !isInSelectionMode
-            onSelectionModeChangeListener?.invoke(isInSelectionMode)
 
-            notifyDataSetChanged()
-        }
 
         @SuppressLint("SetTextI18n")
         private fun toggleExpanded() {

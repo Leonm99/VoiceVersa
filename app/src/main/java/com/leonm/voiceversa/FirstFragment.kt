@@ -10,13 +10,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
+import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.aallam.openai.api.model.Model
 import com.leonm.voiceversa.databinding.FragmentFirstBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -66,6 +68,18 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         mainActivity = (activity as? MainActivity)!!
         tAdapter = TranscriptionAdapter(transcriptions, this, mainActivity)
 
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+
+                if (tAdapter.isInSelectionMode) {
+                    tAdapter.toggleSelectionMode()
+
+                } else {
+                    isEnabled = false
+
+                }
+            }
+        })
 
         return binding.root
     }
@@ -143,11 +157,16 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
 
 
-
-
     override fun onResume() {
         super.onResume()
+
+
         reloadData()
+
+        if(tAdapter.isInSelectionMode){
+            tAdapter.toggleSelectionMode()
+        }
+
     }
 
 
@@ -179,6 +198,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
             tAdapter.setSelectedItems(emptyList()) // Clear selected items
             recyclerView.adapter?.notifyDataSetChanged()
             jsonManager.saveTranscriptions(transcriptions)
+            tAdapter.toggleSelectionMode()
         } catch (e: Exception) {
             handleError(e)
         }

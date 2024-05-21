@@ -2,6 +2,7 @@ package com.leonm.voiceversa
 
 import android.Manifest.permission
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,12 +11,18 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.text.Html
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.findNavController
@@ -24,13 +31,17 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.textfield.TextInputLayout
 import com.leonm.voiceversa.databinding.ActivityMainBinding
 import kotlinx.coroutines.runBlocking
+import java.security.AccessController.getContext
+import kotlin.system.exitProcess
+
 
 class MainActivity : AppCompatActivity(){
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private lateinit var defaultToolbar: MaterialToolbar
+    private lateinit var defaultToolbar: Toolbar
     private var openAiHandler = OpenAiHandler()
     private lateinit var sharedPreferencesManager : SharedPreferencesManager
 
@@ -45,12 +56,12 @@ class MainActivity : AppCompatActivity(){
 
         runBlocking {
 
-            val apiKey =sharedPreferencesManager.loadData("API_KEY", "")
+            val apiKey = sharedPreferencesManager.loadData("API_KEY", "")
             val isValid = openAiHandler.checkApiKey(apiKey)
 
             if (!isValid) {
                 sharedPreferencesManager.saveData("isApiKeyValid", false)
-                Toast.makeText(this@MainActivity, "Please a valid API key in settings!", Toast.LENGTH_SHORT).show()
+                alertApiKey(this@MainActivity)
             } else {
 
                 sharedPreferencesManager.saveData("isApiKeyValid", true)
@@ -60,6 +71,8 @@ class MainActivity : AppCompatActivity(){
 
 
         }
+
+
 
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -79,6 +92,9 @@ class MainActivity : AppCompatActivity(){
 
 
 
+
+
+
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
 
         if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
@@ -93,10 +109,11 @@ class MainActivity : AppCompatActivity(){
 
     }
 
+
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
+
         menuInflater.inflate(R.menu.menu_main, menu)
-        // Inflate the menu for multi-selection toolbar
 
 
         return true
@@ -224,7 +241,7 @@ class MainActivity : AppCompatActivity(){
                 }
 
                 // Fill with actual results from user
-                if (grantResults.size > 0) {
+                if (grantResults.isNotEmpty()) {
                     var i = 0
                     while (i < permissions.size) {
                         perms[permissions[i]] = grantResults[i]
@@ -338,6 +355,53 @@ class MainActivity : AppCompatActivity(){
             .create()
             .show()
     }
+
+    private fun alertApiKey(context: Context) {
+
+            val textInputLayout = TextInputLayout(context)
+            textInputLayout.setPadding(
+                resources.getDimensionPixelOffset(R.dimen.dp_19),
+                0,
+                resources.getDimensionPixelOffset(R.dimen.dp_19),
+                0
+            )
+            val input = EditText(context)
+            input.setHintTextColor(resources.getColor(R.color.md_theme_dark_onPrimary))
+            textInputLayout.hint = "API key"
+            textInputLayout.addView(input)
+
+            val alert = AlertDialog.Builder(context)
+                .setTitle("Api key")
+                .setCancelable(false)
+                .setView(textInputLayout)
+                .setMessage("Please enter a valid OpenAI API key.")
+                .setPositiveButton(Html.fromHtml("<font color='#FFFFFF'>Submit</font>",0)) { dialog, _ ->
+                    var isKeyValid = false
+                    runBlocking {  isKeyValid = openAiHandler.checkApiKey(input.text.toString()) }
+                   if (isKeyValid) {
+                       sharedPreferencesManager.saveData("API_KEY", input.text.toString())
+                       Toast.makeText(this, "Api key is invalid", Toast.LENGTH_LONG)
+                           .show()
+                       dialog.cancel()
+                   }else{
+                       Toast.makeText(this, "Api key is invalid", Toast.LENGTH_LONG)
+                           .show()
+                       alertApiKey(this)
+
+                   }
+
+                }
+                .setNegativeButton(Html.fromHtml("<font color='#FFFFFF'>Exit</font>",0)) { dialog, _ ->
+                    dialog.cancel()
+                   this.finish()
+                    exitProcess(0)
+                }.create()
+
+            alert.show()
+
+        }
+
+
 
 
 
