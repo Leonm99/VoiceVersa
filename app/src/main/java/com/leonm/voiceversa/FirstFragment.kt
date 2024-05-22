@@ -38,7 +38,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
     private var _binding: FragmentFirstBinding? = null
     private val binding get() = _binding!!
-    private val openAiHandler by lazy { OpenAiHandler() }
+    private val openAiHandler by lazy { OpenAiHandler(requireContext()) }
     private val transcriptions = mutableListOf<Transcription>()
 
     private lateinit var jsonManager: JsonManager
@@ -179,7 +179,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     private suspend fun performWhisperTranscription(path: String?) {
         try {
             showLoading(true)
-            val result = openAiHandler.whisper(requireContext(), openAiHandler.callOpenAI(requireContext())!!, path!!)
+            openAiHandler.initOpenAI()
+            val result = openAiHandler.whisper(path!!)
             saveTranscriptionToFile(result, "", "")
             updateOutputText()
         } catch (e: Exception) {

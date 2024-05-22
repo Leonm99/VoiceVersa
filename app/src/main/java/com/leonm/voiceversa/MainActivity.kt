@@ -19,12 +19,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
@@ -33,94 +35,57 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.textfield.TextInputLayout
 import com.leonm.voiceversa.databinding.ActivityMainBinding
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.security.AccessController.getContext
 import kotlin.system.exitProcess
 
-
-class MainActivity : AppCompatActivity(){
+class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var defaultToolbar: Toolbar
-    private var openAiHandler = OpenAiHandler()
-    private lateinit var sharedPreferencesManager : SharedPreferencesManager
+    private  lateinit var openAiHandler: OpenAiHandler
+    private lateinit var sharedPreferencesManager: SharedPreferencesManager
 
-
-    @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        openAiHandler = OpenAiHandler(this@MainActivity)
         checkAndRequestPermissions()
 
         sharedPreferencesManager = SharedPreferencesManager(this)
 
-        runBlocking {
-
+        lifecycleScope.launch {
             val apiKey = sharedPreferencesManager.loadData("API_KEY", "")
             val isValid = openAiHandler.checkApiKey(apiKey)
 
             if (!isValid) {
                 sharedPreferencesManager.saveData("isApiKeyValid", false)
-                openAiHandler.alertApiKey(this@MainActivity)
+                openAiHandler.alertApiKey()
             } else {
-
                 sharedPreferencesManager.saveData("isApiKeyValid", true)
-                openAiHandler.getAvailableModels(this@MainActivity)
+                openAiHandler.getAvailableModels()
             }
-
-
-
         }
-
-
-
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         defaultToolbar = binding.toolbar
-
-
         setSupportActionBar(defaultToolbar)
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-
-
-
-
-
-
-
-        val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-
-        if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
-            AppCompatDelegate.MODE_NIGHT_YES
-
-
-        } else {
-            AppCompatDelegate.MODE_NIGHT_NO
-        }
-
-
-
+        configureNightMode()
     }
 
-
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-
         menuInflater.inflate(R.menu.menu_main, menu)
-
-
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
         return when (item.itemId) {
             R.id.SecondFragment -> {
                 NavigationUI.onNavDestinationSelected(
@@ -134,217 +99,95 @@ class MainActivity : AppCompatActivity(){
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration) ||
-            super.onSupportNavigateUp()
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-
-    @Suppress("ktlint:standard:property-naming")
-    private val REQUEST_ID_MULTIPLE_PERMISSIONS = 1
-
-    private fun checkAndRequestPermissions(): Boolean {
-        val permissionReadExternalStorage: Int =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.READ_MEDIA_IMAGES,
-                )
-            } else {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.READ_EXTERNAL_STORAGE,
-                )
-            }
-        val permissionWriteExternalStorage: Int =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.READ_MEDIA_AUDIO,
-                )
-            } else {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.WRITE_EXTERNAL_STORAGE,
-                )
-            }
-        val listPermissionsNeeded: MutableList<String> = ArrayList()
-        if (permissionWriteExternalStorage != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                listPermissionsNeeded.add(
-                    permission.READ_MEDIA_AUDIO,
-                )
-            } else {
-                listPermissionsNeeded.add(permission.WRITE_EXTERNAL_STORAGE)
-            }
-        }
-        if (permissionReadExternalStorage != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                listPermissionsNeeded.add(
-                    permission.READ_MEDIA_IMAGES,
-                )
-            } else {
-                listPermissionsNeeded.add(permission.READ_EXTERNAL_STORAGE)
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val permissionVideoStorage =
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.READ_MEDIA_VIDEO,
-                )
-            if (permissionVideoStorage != PackageManager.PERMISSION_GRANTED) {
-                listPermissionsNeeded.add(permission.READ_MEDIA_VIDEO)
-            }
-            val notificationPermission =
-                ContextCompat.checkSelfPermission(
-                    this,
-                    permission.POST_NOTIFICATIONS,
-                )
-            if (notificationPermission != PackageManager.PERMISSION_GRANTED) {
-                listPermissionsNeeded.add(permission.POST_NOTIFICATIONS)
-            }
-        }
-        if (listPermissionsNeeded.isNotEmpty()) {
-            ActivityCompat.requestPermissions(
-                this,
-                listPermissionsNeeded.toTypedArray<String>(),
-                REQUEST_ID_MULTIPLE_PERMISSIONS,
-            )
-            return false
-        }
-        return true
+    private fun configureNightMode() {
+        val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        AppCompatDelegate.setDefaultNightMode(
+            if (nightMode == Configuration.UI_MODE_NIGHT_YES) AppCompatDelegate.MODE_NIGHT_YES
+            else AppCompatDelegate.MODE_NIGHT_NO
+        )
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            REQUEST_ID_MULTIPLE_PERMISSIONS -> {
-                val perms: MutableMap<String, Int> = HashMap()
-                // Initialize the map with both permissions
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    perms[permission.READ_MEDIA_IMAGES] = PackageManager.PERMISSION_GRANTED
-                    perms[permission.READ_MEDIA_AUDIO] = PackageManager.PERMISSION_GRANTED
-                    perms[permission.READ_MEDIA_VIDEO] = PackageManager.PERMISSION_GRANTED
-                    perms[permission.POST_NOTIFICATIONS] =
-                        PackageManager.PERMISSION_GRANTED
-                    perms[permission.SYSTEM_ALERT_WINDOW] =
-                        PackageManager.PERMISSION_GRANTED
-                } else {
-                    perms[permission.WRITE_EXTERNAL_STORAGE] =
-                        PackageManager.PERMISSION_GRANTED
-                    perms[permission.READ_EXTERNAL_STORAGE] =
-                        PackageManager.PERMISSION_GRANTED
-                }
-
-                // Fill with actual results from user
-                if (grantResults.isNotEmpty()) {
-                    var i = 0
-                    while (i < permissions.size) {
-                        perms[permissions[i]] = grantResults[i]
-                        i++
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        if (perms[permission.READ_MEDIA_IMAGES] == PackageManager.PERMISSION_GRANTED &&
-                            perms[permission.READ_MEDIA_AUDIO] == PackageManager.PERMISSION_GRANTED &&
-                            perms[permission.READ_MEDIA_VIDEO] == PackageManager.PERMISSION_GRANTED &&
-                            perms[permission.POST_NOTIFICATIONS] == PackageManager.PERMISSION_GRANTED &&
-                            perms[permission.SYSTEM_ALERT_WINDOW] == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            Toast.makeText(
-                                this,
-                                "Permissions Granted! :)",
-                                Toast.LENGTH_LONG,
-                            ).show()
-                            permissionSettingScreen()
-                            // else any one or both the permissions are not granted
-                        } else {
-                            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                                    this,
-                                    permission.READ_MEDIA_IMAGES,
-                                ) ||
-                                ActivityCompat.shouldShowRequestPermissionRationale(
-                                    this,
-                                    permission.READ_MEDIA_AUDIO,
-                                ) ||
-                                ActivityCompat.shouldShowRequestPermissionRationale(
-                                    this,
-                                    permission.READ_MEDIA_VIDEO,
-                                ) ||
-                                ActivityCompat.shouldShowRequestPermissionRationale(
-                                    this,
-                                    permission.POST_NOTIFICATIONS,
-                                )
-                            ) {
-                                showDialogOK { dialog, which ->
-                                    when (which) {
-                                        DialogInterface.BUTTON_POSITIVE -> checkAndRequestPermissions()
-                                        DialogInterface.BUTTON_NEGATIVE ->
-                                            Toast.makeText(
-                                                this@MainActivity,
-                                                "Necessary Permissions required for this app",
-                                                Toast.LENGTH_LONG,
-                                            ).show()
-                                    }
-                                }
-                            } else {
-                                permissionSettingScreen()
-                            }
-                        }
+    private val permissionRequestLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            if (permissions.all { it.value }) {
+                Toast.makeText(this, "Permissions Granted! :)", Toast.LENGTH_SHORT).show()
+                showOverlayPermissionDialog()
+            } else {
+                showDialogOK { _, which ->
+                    if (which == DialogInterface.BUTTON_POSITIVE) {
+                        checkAndRequestPermissions()
                     } else {
-                        if (perms[permission.WRITE_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED &&
-                            perms[permission.READ_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            Toast.makeText(
-                                this,
-                                "Permissions Granted! :)",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                            // else any one or both the permissions are not granted
-                        } else {
-                            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                                    this,
-                                    permission.WRITE_EXTERNAL_STORAGE,
-                                ) ||
-                                ActivityCompat.shouldShowRequestPermissionRationale(
-                                    this,
-                                    permission.READ_EXTERNAL_STORAGE,
-                                )
-                            ) {
-                                showDialogOK { dialog, which ->
-                                    when (which) {
-                                        DialogInterface.BUTTON_POSITIVE -> checkAndRequestPermissions()
-                                        DialogInterface.BUTTON_NEGATIVE ->
-                                            Toast.makeText(
-                                                this@MainActivity,
-                                                "Necessary Permissions required for this app",
-                                                Toast.LENGTH_LONG,
-                                            ).show()
-                                    }
-                                }
-                            } else {
-                                permissionSettingScreen()
-                            }
-                        }
+                        Toast.makeText(this, "Necessary Permissions required for this app", Toast.LENGTH_LONG).show()
                     }
                 }
             }
         }
+
+    private fun checkAndRequestPermissions() {
+        val permissions = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(permission.READ_MEDIA_IMAGES)
+            }
+            if (ContextCompat.checkSelfPermission(this, permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(permission.READ_MEDIA_AUDIO)
+            }
+            if (ContextCompat.checkSelfPermission(this, permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(permission.READ_MEDIA_VIDEO)
+            }
+            if (ContextCompat.checkSelfPermission(this, permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(permission.POST_NOTIFICATIONS)
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(permission.WRITE_EXTERNAL_STORAGE)
+            }
+            if (ContextCompat.checkSelfPermission(this, permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(permission.READ_EXTERNAL_STORAGE)
+            }
+        }
+
+        if (permissions.isNotEmpty()) {
+            permissionRequestLauncher.launch(permissions.toTypedArray())
+        } else {
+            showOverlayPermissionDialog()
+        }
     }
 
-    private fun permissionSettingScreen() {
-        Toast.makeText(this, "Scroll down and grant VoiceVersa permission.", Toast.LENGTH_LONG)
-            .show()
-        val intent = Intent()
-        intent.setAction(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
-        intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-        val uri = Uri.fromParts("package", packageName, null)
-        intent.setData(uri)
-        startActivity(intent)
-        // finishAffinity();
+    private fun showOverlayPermissionDialog() {
+        if (!Settings.canDrawOverlays(this)) {
+            AlertDialog.Builder(this)
+                .setTitle("Draw Over Other Apps Permission")
+                .setMessage("To continue, please scroll down and find VoiceVersa in the list, then enable the 'Draw over other apps' permission.")
+                .setPositiveButton("Go to Settings") { _, _ ->
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:$packageName")
+                    )
+                    startActivityForResult(intent, REQUEST_CODE_DRAW_OVERLAY)
+                }
+                .setNegativeButton("Cancel") { dialog, _ ->
+                    dialog.dismiss()
+                    Toast.makeText(this, "Draw over other apps permission is required for this app to function properly.", Toast.LENGTH_LONG).show()
+                }
+                .show()
+        }
+    }
+
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_DRAW_OVERLAY) {
+            if (Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "Draw over other apps permission granted", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Draw over other apps permission is required", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun showDialogOK(okListener: DialogInterface.OnClickListener) {
@@ -356,10 +199,7 @@ class MainActivity : AppCompatActivity(){
             .show()
     }
 
-
-
-
-
-
-
+    companion object {
+        private const val REQUEST_CODE_DRAW_OVERLAY = 1234
+    }
 }

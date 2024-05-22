@@ -1,6 +1,7 @@
 package com.leonm.voiceversa
 
 import android.content.Context
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
@@ -8,24 +9,27 @@ import java.io.IOException
 
 class JsonManager(private val context: Context) {
     private val gson = Gson()
+    private val fileName = "Data.json"
+    private val file: File
+        get() = File(context.filesDir, fileName)
 
     fun loadTranscriptions(): List<Transcription> {
-        try {
-            val file = File(context.filesDir, "Data.json")
+        return try {
             if (file.exists()) {
                 val jsonTranscriptions = file.readText()
-                return gson.fromJson(jsonTranscriptions, object : TypeToken<List<Transcription>>() {}.type)
+                gson.fromJson(jsonTranscriptions, object : TypeToken<List<Transcription>>() {}.type)
+            } else {
+                emptyList()
             }
         } catch (e: IOException) {
             handleError(e)
+            emptyList()
         }
-        return emptyList()
     }
 
     fun saveTranscriptions(transcriptions: List<Transcription>) {
         try {
             val jsonTranscriptions = gson.toJson(transcriptions)
-            val file = File(context.filesDir, "Data.json")
             file.writeText(jsonTranscriptions)
         } catch (e: IOException) {
             handleError(e)
@@ -34,6 +38,6 @@ class JsonManager(private val context: Context) {
 
     private fun handleError(exception: Exception) {
         // Handle exceptions here, log or display meaningful error messages
-        exception.printStackTrace()
+        Log.e("JsonManager", "Error: ${exception.message}", exception)
     }
 }

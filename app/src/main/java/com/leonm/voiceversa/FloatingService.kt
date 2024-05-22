@@ -39,6 +39,7 @@ private var summarizedContent: String = ""
 private var translatedContent: String = ""
 
 class FloatingService : Service(), CoroutineScope, WindowCallback {
+
     private val job = Job()
     private var window: Window? = null
     private var result: String = ""
@@ -52,6 +53,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         jsonManager = JsonManager(applicationContext)
         showNotification()
         configureNightMode()
+
         window = Window(applicationContext, this, this, coroutineContext)
         window?.open()
 
@@ -68,7 +70,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
             handleCommand(command, intent)
         }
 
-        return super.onStartCommand(intent, flags, START_NOT_STICKY)
+        return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -85,7 +87,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
             summarizedContent = ""
             translatedContent = ""
 
-            CoroutineScope(Dispatchers.IO).launch {
+            launch(Dispatchers.IO) {
                 transcriptions.addAll(jsonManager.loadTranscriptions())
                 jsonManager.saveTranscriptions(transcriptions)
             }
@@ -95,12 +97,9 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
 
     private fun handleCommand(command: String?, intent: Intent?) {
         when (command) {
-            INTENT_COMMAND_TRANSCRIBE -> transcribeFile(intent?.getStringExtra("PATH")!!)
-            INTENT_COMMAND_DOWNLOAD -> downloadAndTranscribeFile(intent?.getStringExtra("PATH")!!)
-            INTENT_COMMAND_EXIT -> {
-                stopService()
-                stopSelf()
-            }
+            INTENT_COMMAND_TRANSCRIBE -> transcribeFile(intent?.getStringExtra("PATH") ?: "")
+            INTENT_COMMAND_DOWNLOAD -> downloadAndTranscribeFile(intent?.getStringExtra("PATH") ?: "")
+            INTENT_COMMAND_EXIT -> stopService()
         }
     }
 
@@ -168,15 +167,15 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         launch(Dispatchers.IO) {
             try {
                 val audioFileUri = Uri.fromFile(File(tempfile))
-                val convertedUri = OpenAiHandler().convertAudio(this@FloatingService, audioFileUri, "mp3")
+                val convertedUri = OpenAiHandler(this@FloatingService).convertAudio( audioFileUri, "mp3")
 
-                if (convertedUri != null) {
-                    val openAIResult = OpenAiHandler().callOpenAI(this@FloatingService) ?: return@launch
-                    val whisperResult = OpenAiHandler().whisper(this@FloatingService, openAIResult, convertedUri.path ?: return@launch)
+                convertedUri?.let {
+                    OpenAiHandler(this@FloatingService).initOpenAI() ?: return@launch
+                    val whisperResult = OpenAiHandler(this@FloatingService).whisper( it.path ?: return@launch)
 
                     inputLanguage = whisperResult
-                    result = OpenAiHandler().correctSpelling(this@FloatingService, openAIResult, whisperResult)
-                    filePath = convertedUri.path ?: return@launch
+                    result = OpenAiHandler(this@FloatingService).correctSpelling(whisperResult)
+                    filePath = it.path ?: return@launch
 
                     window?.enableButtons()
                     withContext(Dispatchers.Main) {
@@ -205,9 +204,8 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
 
     fun stopService() {
         Log.d("FloatingService", "stopService")
+        stopForeground(true)
         stopSelf()
     }
-
-
 }
 

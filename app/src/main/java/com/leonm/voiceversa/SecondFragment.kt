@@ -21,122 +21,111 @@ import kotlinx.coroutines.runBlocking
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
-class SecondFragment : Fragment(){
+class SecondFragment : Fragment() {
+
     private var _binding: FragmentSecondBinding? = null
     private val binding get() = _binding!!
 
-
-
-
     private var isKeyVisible = false
     private lateinit var buttonShowPassword: MaterialButton
-    private var savedSelection: Int = 0
-    private var savedModelSelection: Int = 0
+    private var savedSelection = 0
+    private var savedModelSelection = 0
     private lateinit var sharedPreferencesManager: SharedPreferencesManager
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        setHasOptionsMenu(true)
         _binding = FragmentSecondBinding.inflate(inflater, container, false)
+        sharedPreferencesManager = SharedPreferencesManager(requireContext())
 
-        val sharedPrefs = SharedPreferencesManager(requireContext())
-
-
-
-        val languagesAdapter = ArrayAdapter<Any?>(requireContext(), R.layout.dropdown_item, resources.getStringArray(R.array.string_array_languages))
-        val autoCompleteTextView = binding.autocompleteText
-        autoCompleteTextView.setAdapter(languagesAdapter)
-
-        savedSelection = sharedPrefs.loadData("LANGUAGE", "0").toInt()
-        autoCompleteTextView.setText(resources.getStringArray(R.array.string_array_languages)[savedSelection], false)
-
-
-        val savedApiKey = sharedPrefs.loadData("API_KEY", "")
-        binding.editTextTextPassword.setText(savedApiKey)
-
-        autoCompleteTextView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-            sharedPrefs.saveData("LANGUAGE", position)
-            savedSelection = sharedPrefs.loadData("LANGUAGE", "0").toInt()
-
-            sharedPrefs.saveData("LANGUAGE_STRING", resources.getStringArray(R.array.string_array_languages)[savedSelection])
-            Toast.makeText(requireContext(), "Selected: ${parent.getItemAtPosition(position)}", Toast.LENGTH_SHORT).show()
-        }
-
-        buttonShowPassword = binding.buttonShowPassword
-        buttonShowPassword.setOnClickListener {
-            togglePasswordVisibility()
-        }
-
-
-
-
-
-        val items = sharedPrefs.loadData("MODEL_IDS", listOf(""))
-        val modelsAdapter = ArrayAdapter<Any?>(requireContext(), R.layout.dropdown_item, items)
-        val autoCompleteTextView2 = binding.autocompleteText2
-        autoCompleteTextView2.setAdapter(modelsAdapter)
-
-        savedModelSelection = sharedPrefs.loadData("SELECTED_MODEL", "0").toInt()
-        autoCompleteTextView2.setText(items[savedModelSelection], false)
-
-        autoCompleteTextView2.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-            sharedPrefs.saveData("SELECTED_MODEL", position)
-            savedModelSelection = sharedPrefs.loadData("SELECTED_MODEL", "0").toInt()
-
-            sharedPrefs.saveData("MODEL_STRING", items[savedModelSelection])
-            Log.d("Selected Model", items[savedModelSelection])
-            Log.d("Selected Model", sharedPrefs.loadData("MODEL_STRING", ""))
-            Toast.makeText(requireContext(), "Selected: ${parent.getItemAtPosition(position)}", Toast.LENGTH_SHORT).show()
-        }
-
-        val toggleSwitch = binding.switch1
-        toggleSwitch.isChecked = sharedPrefs.loadData("TOGGLE_SWITCH", false)
-        toggleSwitch.setOnCheckedChangeListener { _, isChecked -> sharedPrefs.saveData("TOGGLE_SWITCH", isChecked) }
-
-
+        setupLanguageDropdown()
+        setupModelDropdown()
+        setupPasswordVisibilityToggle()
+        setupApiKeyField()
+        setupToggleSwitch()
 
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    private fun setupLanguageDropdown() {
+        val languagesAdapter = ArrayAdapter(
+            requireContext(), R.layout.dropdown_item, resources.getStringArray(R.array.string_array_languages)
+        )
+        val autoCompleteTextView = binding.autocompleteText
+        autoCompleteTextView.setAdapter(languagesAdapter)
 
-        val sharedPreferencesManager = SharedPreferencesManager(context)
-        // Save the text to SharedPreferences when the user finishes editing
+        savedSelection = sharedPreferencesManager.loadData("LANGUAGE", "0").toInt()
+        autoCompleteTextView.setText(resources.getStringArray(R.array.string_array_languages)[savedSelection], false)
+
+        autoCompleteTextView.onItemClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
+            sharedPreferencesManager.saveData("LANGUAGE", position)
+            sharedPreferencesManager.saveData("LANGUAGE_STRING", parent.getItemAtPosition(position).toString())
+            savedSelection = position
+            Toast.makeText(requireContext(), "Selected: ${parent.getItemAtPosition(position)}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupModelDropdown() {
+        val items = sharedPreferencesManager.loadData("MODEL_IDS", listOf(""))
+        val modelsAdapter = ArrayAdapter(requireContext(), R.layout.dropdown_item, items)
+        val autoCompleteTextView = binding.autocompleteText2
+        autoCompleteTextView.setAdapter(modelsAdapter)
+
+        savedModelSelection = sharedPreferencesManager.loadData("SELECTED_MODEL", "0").toInt()
+        autoCompleteTextView.setText(items[savedModelSelection], false)
+
+        autoCompleteTextView.onItemClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
+            sharedPreferencesManager.saveData("SELECTED_MODEL", position)
+            sharedPreferencesManager.saveData("MODEL_STRING", parent.getItemAtPosition(position).toString())
+            savedModelSelection = position
+            Toast.makeText(requireContext(), "Selected: ${parent.getItemAtPosition(position)}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupPasswordVisibilityToggle() {
+        buttonShowPassword = binding.buttonShowPassword
+        buttonShowPassword.setOnClickListener { togglePasswordVisibility() }
+    }
+
+    private fun setupApiKeyField() {
+        binding.editTextTextPassword.setText(sharedPreferencesManager.loadData("API_KEY", ""))
         binding.editTextTextPassword.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val text = binding.editTextTextPassword.text.toString()
-                sharedPreferencesManager.saveData("API_KEY", text)
-                var openAiHandler = OpenAiHandler()
-                runBlocking {
-
-
-                    if (!openAiHandler.checkApiKey(text)){
-                        Toast.makeText(context, "API key not valid!", Toast.LENGTH_SHORT).show()
-                    }else{
-                        sharedPreferencesManager.saveData("API_KEY", text)
-                        Toast.makeText(context, "API key is valid!", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-
+                saveApiKey(text)
             }
-
-            val items = sharedPreferencesManager.loadData("MODEL_IDS", listOf(""))
-            val modelsAdapter = ArrayAdapter<Any?>(requireContext(), R.layout.dropdown_item, items)
-            val autoCompleteTextView2 = binding.autocompleteText2
-            autoCompleteTextView2.setAdapter(modelsAdapter)
-
-            savedModelSelection = sharedPreferencesManager.loadData("SELECTED_MODEL", "0").toInt()
-            autoCompleteTextView2.setText(items[savedModelSelection], false)
-
-            val savedApiKey = sharedPreferencesManager.loadData("API_KEY", "")
-            binding.editTextTextPassword.setText(savedApiKey)
-
         }
+    }
+
+    private fun setupToggleSwitch() {
+        val toggleSwitch = binding.switch1
+        toggleSwitch.isChecked = sharedPreferencesManager.loadData("TOGGLE_SWITCH", false)
+        toggleSwitch.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferencesManager.saveData("TOGGLE_SWITCH", isChecked)
+        }
+    }
+
+    private fun saveApiKey(text: String) {
+        runBlocking {
+            val openAiHandler = OpenAiHandler(requireContext())
+            if (!openAiHandler.checkApiKey(text)) {
+                Toast.makeText(context, "API key not valid!", Toast.LENGTH_SHORT).show()
+            } else {
+                sharedPreferencesManager.saveData("API_KEY", text)
+                Toast.makeText(context, "API key is valid!", Toast.LENGTH_SHORT).show()
+                refreshModelDropdown()
+            }
+        }
+    }
+
+    private fun refreshModelDropdown() {
+        val items = sharedPreferencesManager.loadData("MODEL_IDS", listOf(""))
+        val modelsAdapter = ArrayAdapter(requireContext(), R.layout.dropdown_item, items)
+        val autoCompleteTextView = binding.autocompleteText2
+        autoCompleteTextView.setAdapter(modelsAdapter)
+
+        savedModelSelection = sharedPreferencesManager.loadData("SELECTED_MODEL", "0").toInt()
+        autoCompleteTextView.setText(items[savedModelSelection], false)
     }
 
     override fun onDestroyView() {
@@ -144,20 +133,10 @@ class SecondFragment : Fragment(){
         _binding = null
     }
 
-
     private fun togglePasswordVisibility() {
         isKeyVisible = !isKeyVisible
-        if (isKeyVisible) {
-            // Show password
-            binding.editTextTextPassword.transformationMethod = null
-            binding.buttonShowPassword.setIconResource(R.drawable.visibility_off_fill)
-        } else {
-            // Hide password
-            binding.editTextTextPassword.transformationMethod = PasswordTransformationMethod.getInstance()
-            binding.buttonShowPassword.setIconResource(R.drawable.visibility_fill)
-        }
-        // Move cursor to the end of text
+        binding.editTextTextPassword.transformationMethod = if (isKeyVisible) null else PasswordTransformationMethod.getInstance()
+        binding.buttonShowPassword.setIconResource(if (isKeyVisible) R.drawable.visibility_off_fill else R.drawable.visibility_fill)
         binding.editTextTextPassword.setSelection(binding.editTextTextPassword.text.length)
     }
-
 }

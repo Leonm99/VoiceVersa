@@ -1,6 +1,5 @@
 package com.leonm.voiceversa
 
-
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
@@ -11,8 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import java.text.SimpleDateFormat
-import java.util.Locale
-
+import java.util.*
 
 data class Transcription(
     val content: String,
@@ -30,43 +28,21 @@ data class Transcription(
     }
 }
 
-
-
 class TranscriptionAdapter(
     private val transcriptions: MutableList<Transcription>,
-    private val onDeleteClickListener: OnDeleteClickListener,
-    mainActivity: MainActivity
 ) : RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
 
     private val selectedItems = mutableSetOf<Int>()
     var isInSelectionMode = false
     var onSelectionModeChangeListener: ((Boolean) -> Unit)? = null
 
-
-
-    var mainActivity: MainActivity? = null
-
-    companion object {
-        private const val SPECIFIED_HEIGHT = 230
-
-
-    }
-
-
-
     interface OnDeleteClickListener {
         fun onDeleteClick(transcription: Transcription)
     }
 
-init {
-    this.mainActivity = mainActivity
-}
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TranscriptionViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.item_transcription, parent, false)
-
-
         return TranscriptionViewHolder(view)
     }
 
@@ -76,23 +52,18 @@ init {
 
     override fun getItemCount(): Int = transcriptions.size
 
-
-    fun getSelectedItems(): List<Int> {
-        return selectedItems.toList()
-    }
+    fun getSelectedItems(): List<Int> = selectedItems.toList()
 
     fun setSelectedItems(items: List<Int>) {
-        this.selectedItems.clear()
-        this.selectedItems.addAll(items)
+        selectedItems.clear()
+        selectedItems.addAll(items)
     }
 
     fun toggleSelectionMode() {
         isInSelectionMode = !isInSelectionMode
         onSelectionModeChangeListener?.invoke(isInSelectionMode)
-
         notifyDataSetChanged()
     }
-
 
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -103,22 +74,16 @@ init {
         private val buttonHolder: LinearLayout = itemView.findViewById(R.id.button_holder)
         private val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
 
-       
         init {
-
-
-
             itemView.setOnClickListener {
                 toggleExpanded()
             }
 
             itemView.setOnLongClickListener {
                 toggleSelectionMode()
-
                 true // consume the long click
             }
 
-            
             textTranscriptionContent.setOnClickListener {
                 toggleExpanded()
             }
@@ -128,22 +93,10 @@ init {
                 true
             }
 
-
-
-
-
-
-
             checkBox.setOnClickListener {
-                val transcription = transcriptions[bindingAdapterPosition]
-                toggleSelection(transcriptions.indexOf(transcription))
-
+                toggleSelection(adapterPosition)
             }
-
-
-            
         }
-
 
         private fun toggleSelection(position: Int) {
             if (selectedItems.contains(position)) {
@@ -154,12 +107,9 @@ init {
             notifyDataSetChanged()
         }
 
-
-
-
         @SuppressLint("SetTextI18n")
         private fun toggleExpanded() {
-            val transcription = transcriptions[bindingAdapterPosition]
+            val transcription = transcriptions[adapterPosition]
             with(textTranscriptionContent) {
                 if (maxHeight == SPECIFIED_HEIGHT) {
                     text = transcription.content
@@ -178,21 +128,8 @@ init {
             textTranscriptionContent.text = transcription.content.take(SPECIFIED_HEIGHT) + "..."
             textTranscriptionContent.maxHeight = SPECIFIED_HEIGHT
 
-            //transcriptions.forEach { it.isInSelectionMode = false }
-
-
-            if (isInSelectionMode) {
-                checkBox.visibility = View.VISIBLE
-                checkBox.isChecked = selectedItems.contains(bindingAdapterPosition)
-
-
-            } else {
-
-                checkBox.visibility = View.GONE
-
-
-            }
-
+            checkBox.visibility = if (isInSelectionMode) View.VISIBLE else View.GONE
+            checkBox.isChecked = selectedItems.contains(adapterPosition)
 
             val summaryAvailable = transcription.summarizedContent.isNotEmpty()
             val translationAvailable = transcription.translatedContent.isNotEmpty()
@@ -219,5 +156,9 @@ init {
 
             buttonHolder.visibility = if (summaryAvailable || translationAvailable) View.VISIBLE else View.GONE
         }
+    }
+
+    companion object {
+        private const val SPECIFIED_HEIGHT = 230
     }
 }
