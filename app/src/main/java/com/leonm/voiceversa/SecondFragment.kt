@@ -110,13 +110,14 @@ class SecondFragment : Fragment(){
             if (!hasFocus) {
                 val text = binding.editTextTextPassword.text.toString()
                 sharedPreferencesManager.saveData("API_KEY", text)
-
+                var openAiHandler = OpenAiHandler()
                 runBlocking {
 
 
-                    if (!SharedPreferencesManager(context).loadData("isApiKeyValid", false)){
+                    if (!openAiHandler.checkApiKey(text)){
                         Toast.makeText(context, "API key not valid!", Toast.LENGTH_SHORT).show()
                     }else{
+                        sharedPreferencesManager.saveData("API_KEY", text)
                         Toast.makeText(context, "API key is valid!", Toast.LENGTH_SHORT).show()
                     }
                 }

@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity(){
 
             if (!isValid) {
                 sharedPreferencesManager.saveData("isApiKeyValid", false)
-                alertApiKey(this@MainActivity)
+                openAiHandler.alertApiKey(this@MainActivity)
             } else {
 
                 sharedPreferencesManager.saveData("isApiKeyValid", true)
@@ -356,50 +356,7 @@ class MainActivity : AppCompatActivity(){
             .show()
     }
 
-    private fun alertApiKey(context: Context) {
 
-            val textInputLayout = TextInputLayout(context)
-            textInputLayout.setPadding(
-                resources.getDimensionPixelOffset(R.dimen.dp_19),
-                0,
-                resources.getDimensionPixelOffset(R.dimen.dp_19),
-                0
-            )
-            val input = EditText(context)
-            input.setHintTextColor(resources.getColor(R.color.md_theme_dark_onPrimary))
-            textInputLayout.hint = "API key"
-            textInputLayout.addView(input)
-
-            val alert = AlertDialog.Builder(context)
-                .setTitle("Api key")
-                .setCancelable(false)
-                .setView(textInputLayout)
-                .setMessage("Please enter a valid OpenAI API key.")
-                .setPositiveButton(Html.fromHtml("<font color='#FFFFFF'>Submit</font>",0)) { dialog, _ ->
-                    var isKeyValid = false
-                    runBlocking {  isKeyValid = openAiHandler.checkApiKey(input.text.toString()) }
-                   if (isKeyValid) {
-                       sharedPreferencesManager.saveData("API_KEY", input.text.toString())
-                       Toast.makeText(this, "Api key is invalid", Toast.LENGTH_LONG)
-                           .show()
-                       dialog.cancel()
-                   }else{
-                       Toast.makeText(this, "Api key is invalid", Toast.LENGTH_LONG)
-                           .show()
-                       alertApiKey(this)
-
-                   }
-
-                }
-                .setNegativeButton(Html.fromHtml("<font color='#FFFFFF'>Exit</font>",0)) { dialog, _ ->
-                    dialog.cancel()
-                   this.finish()
-                    exitProcess(0)
-                }.create()
-
-            alert.show()
-
-        }
 
 
 

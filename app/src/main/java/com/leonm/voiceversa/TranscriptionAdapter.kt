@@ -95,7 +95,7 @@ init {
 
 
     inner class TranscriptionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
+
         private val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
         private val translationButton: Button = itemView.findViewById(R.id.translationButton)
         private val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
@@ -128,12 +128,7 @@ init {
                 true
             }
 
-            deleteButton.setOnClickListener {
 
-                    onDeleteClickListener.onDeleteClick(transcriptions[bindingAdapterPosition])
-
-
-            }
 
 
 
@@ -189,12 +184,12 @@ init {
             if (isInSelectionMode) {
                 checkBox.visibility = View.VISIBLE
                 checkBox.isChecked = selectedItems.contains(bindingAdapterPosition)
-                deleteButton.visibility = View.GONE
+
 
             } else {
 
                 checkBox.visibility = View.GONE
-                deleteButton.visibility = View.VISIBLE
+
 
             }
 

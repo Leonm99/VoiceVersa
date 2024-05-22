@@ -23,18 +23,6 @@
         android:visibility="gone"
         tools:visibility="gone" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/deleteButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="end"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:onClick="onDeleteButtonClicked"
-        app:icon="@drawable/delete"
-        app:iconGravity="textStart"
-        app:iconPadding="0dp"
-        app:iconTint="?attr/colorOnPrimaryContainer" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

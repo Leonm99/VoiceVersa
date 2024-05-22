@@ -36,8 +36,6 @@ import java.io.IOException
 
 class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
-
-    @Suppress("ktlint:standard:property-naming")
     private var _binding: FragmentFirstBinding? = null
     private val binding get() = _binding!!
     private val openAiHandler by lazy { OpenAiHandler() }
@@ -45,38 +43,27 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
     private lateinit var jsonManager: JsonManager
     private lateinit var recyclerView: RecyclerView
-
-
     private lateinit var mainActivity: MainActivity
     private lateinit var tAdapter: TranscriptionAdapter
-
-
-
-
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         jsonManager = JsonManager(requireContext())
         recyclerView = binding.recyclerView
-
-
         mainActivity = (activity as? MainActivity)!!
         tAdapter = TranscriptionAdapter(transcriptions, this, mainActivity)
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-
                 if (tAdapter.isInSelectionMode) {
                     tAdapter.toggleSelectionMode()
-
                 } else {
                     isEnabled = false
-
+                    requireActivity().onBackPressed()
                 }
             }
         })
@@ -84,69 +71,10 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         return binding.root
     }
 
-    override fun onViewCreated(
-        view: View,
-        savedInstanceState: Bundle?,
-    ) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-
-
-
-
-        if (recyclerView.adapter == null) {
-            transcriptions.clear()
-            transcriptions.addAll(jsonManager.loadTranscriptions())
-            transcriptions.sortByDescending { it.timestamp }
-            recyclerView.adapter = tAdapter
-
-            recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        }
-
-
-        tAdapter.onSelectionModeChangeListener = { isInSelectionMode ->
-            if (isInSelectionMode) {
-                // Change FAB icon to indicate multiselect mode
-                binding.fab.setImageResource(R.drawable.delete)
-            } else {
-                // Change FAB icon back to the original icon
-                binding.fab.setImageResource(R.drawable.add_fill)
-            }
-        }
-
-
-        binding.testFab.setOnClickListener {
-            saveTranscriptionToFile(resources.getString(R.string.lorem_ipsum),"DAS IST DIE SUMMARY","DAS IST DIE TRANSLATION")
-            reloadData()
-        }
-
-        binding.fab.setOnClickListener {
-            if (tAdapter.isInSelectionMode) {
-
-                deleteMultiple()
-                // Handle multiselect mode action here
-                // For example, you can show a Toast message indicating multiselect mode is active
-                Toast.makeText(requireContext(), "Items deleted!", Toast.LENGTH_SHORT).show()
-            } else {
-                // Handle regular FAB action here
-                lifecycleScope.launch {
-                    try {
-                        // Launch a coroutine to perform openFileChooser
-                        val fileChooserDeferred = async { openFileChooser() }
-
-                        // Wait for openFileChooser to finish
-                        fileChooserDeferred.await()
-
-                        // Now that openFileChooser is done, proceed with performWhisperTranscription
-                    } catch (e: Exception) {
-                        handleError(e)
-                    }
-                }
-            }
-        }
-
-
-
+        setupRecyclerView()
+        setupFabListeners()
     }
 
     override fun onDestroyView() {
@@ -154,21 +82,13 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         _binding = null
     }
 
-
-
-
     override fun onResume() {
         super.onResume()
-
-
         reloadData()
-
-        if(tAdapter.isInSelectionMode){
+        if (tAdapter.isInSelectionMode) {
             tAdapter.toggleSelectionMode()
         }
-
     }
-
 
     override fun onDeleteClick(transcription: Transcription) {
         val position = transcriptions.indexOf(transcription)
@@ -177,25 +97,56 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
             recyclerView.adapter?.notifyItemRemoved(position)
             jsonManager.saveTranscriptions(transcriptions)
         }
-
     }
 
+    private fun setupRecyclerView() {
+        transcriptions.clear()
+        transcriptions.addAll(jsonManager.loadTranscriptions())
+        transcriptions.sortByDescending { it.timestamp }
+        recyclerView.adapter = tAdapter
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        tAdapter.onSelectionModeChangeListener = { isInSelectionMode ->
+            binding.fab.setImageResource(if (isInSelectionMode) R.drawable.delete else R.drawable.add_fill)
+        }
+    }
 
+    private fun setupFabListeners() {
+        binding.testFab.setOnClickListener {
+            saveTranscriptionToFile(
+                getString(R.string.lorem_ipsum),
+                "DAS IST DIE SUMMARY",
+                "DAS IST DIE TRANSLATION"
+            )
+            reloadData()
+        }
+
+        binding.fab.setOnClickListener {
+            if (tAdapter.isInSelectionMode) {
+                deleteMultiple()
+                Toast.makeText(requireContext(), "Items deleted!", Toast.LENGTH_SHORT).show()
+            } else {
+                lifecycleScope.launch {
+                    try {
+                        val fileChooserDeferred = async { openFileChooser() }
+                        fileChooserDeferred.await()
+                    } catch (e: Exception) {
+                        handleError(e)
+                    }
+                }
+            }
+        }
+    }
 
     private fun deleteMultiple() {
         try {
             val selectedItems = tAdapter.getSelectedItems().sortedDescending()
-            Log.d("FirstFragment", "Selected items: $selectedItems")
-
             selectedItems.forEach { position ->
-                if (position >= 0 && position < transcriptions.size) {
-                    Log.d("FirstFragment", "Deleting item at position $position")
+                if (position in transcriptions.indices) {
                     transcriptions.removeAt(position)
                 }
             }
-
-            tAdapter.setSelectedItems(emptyList()) // Clear selected items
+            tAdapter.setSelectedItems(emptyList())
             recyclerView.adapter?.notifyDataSetChanged()
             jsonManager.saveTranscriptions(transcriptions)
             tAdapter.toggleSelectionMode()
@@ -203,28 +154,25 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
             handleError(e)
         }
     }
-    @SuppressLint("NotifyDataSetChanged")
+
     private suspend fun updateOutputText() {
         withContext(Dispatchers.Main) {
             recyclerView.adapter?.notifyDataSetChanged()
         }
-        // Notify the adapter that data set has changed
     }
 
-    private fun saveTranscriptionToFile(content: String,summary: String, translation: String) {
+    private fun saveTranscriptionToFile(content: String, summary: String, translation: String) {
+        val transcription = Transcription(content, summary, translation)
         transcriptions.clear()
-        val transcription = Transcription(content,summary,translation)
         transcriptions.add(transcription)
-
         transcriptions.addAll(jsonManager.loadTranscriptions())
-        jsonManager.saveTranscriptions(transcriptions) // Replace with the actual path
+        jsonManager.saveTranscriptions(transcriptions)
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    fun reloadData() {
+    private fun reloadData() {
         transcriptions.clear()
         transcriptions.addAll(jsonManager.loadTranscriptions())
-        transcriptions.sortedByDescending { it.timestamp }
+        transcriptions.sortByDescending { it.timestamp }
         recyclerView.adapter?.notifyDataSetChanged()
     }
 
@@ -232,7 +180,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         try {
             showLoading(true)
             val result = openAiHandler.whisper(requireContext(), openAiHandler.callOpenAI(requireContext())!!, path!!)
-            saveTranscriptionToFile(result,"","")
+            saveTranscriptionToFile(result, "", "")
             updateOutputText()
         } catch (e: Exception) {
             handleError(e)
@@ -242,13 +190,11 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     }
 
     private fun handleError(exception: Exception) {
-        // Handle exceptions here, log or display meaningful error messages
         exception.printStackTrace()
     }
 
     private fun openFileChooser() {
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.type = "audio/*"
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply { type = "audio/*" }
         fileChooserLauncher.launch(intent)
     }
 
@@ -261,22 +207,21 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
     private fun handleFileSelection(data: Intent?) {
         val selectedFileUri = data?.data
-        if (selectedFileUri != null) {
-            val savedFilePath = saveFileToInternalStorage(selectedFileUri)
-
+        selectedFileUri?.let {
+            val savedFilePath = saveFileToInternalStorage(it)
             lifecycleScope.launch {
                 performWhisperTranscription(savedFilePath)
             }
         }
     }
 
-    private fun saveFileToInternalStorage(uri: Uri?): String? {
+    private fun saveFileToInternalStorage(uri: Uri): String? {
         return try {
-            requireContext().contentResolver.openInputStream(uri!!)?.use { inputStream ->
+            requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
                 val fileExtension = getFileExtension(uri)
                 val internalFile = File(requireContext().filesDir, "selected_file$fileExtension")
                 FileOutputStream(internalFile).use { outputStream ->
-                    inputStream.copyTo(outputStream, bufferSize = 4 * 1024)
+                    inputStream.copyTo(outputStream)
                 }
                 internalFile.absolutePath
             }
@@ -286,15 +231,12 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         }
     }
 
-    private fun getFileExtension(uri: Uri?): String {
-        val contentResolver = requireContext().contentResolver
+    private fun getFileExtension(uri: Uri): String {
         val mimeTypeMap = MimeTypeMap.getSingleton()
-        return "." + mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri!!))
+        return ".${mimeTypeMap.getExtensionFromMimeType(requireContext().contentResolver.getType(uri))}"
     }
 
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
-
-
 }

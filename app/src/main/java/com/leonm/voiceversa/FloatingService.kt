@@ -48,161 +48,40 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
-    override fun onStartCommand(
-        intent: Intent?,
-        flags: Int,
-        startId: Int,
-    ): Int {
-
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         jsonManager = JsonManager(applicationContext)
         showNotification()
-
-
-        val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        AppCompatDelegate.setDefaultNightMode(if (nightMode == Configuration.UI_MODE_NIGHT_YES) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO)
-
+        configureNightMode()
         window = Window(applicationContext, this, this, coroutineContext)
+        window?.open()
 
         val command = intent?.getStringExtra(INTENT_COMMAND)
+        val isApiKeyValid = SharedPreferencesManager(applicationContext)
+            .loadData("isApiKeyValid", "false").toBoolean()
 
-        window?.open()
-        val isValid = SharedPreferencesManager(applicationContext).loadData("isApiKeyValid", "false").toBoolean()
-
-        if (!isValid) {
-            launch(Dispatchers.Main) {
-                window?.updateTextViewWithSlightlyUnevenTypingEffect("Please enter a valid OpenAI API key in the settings.")
-                window?.disableButtons()
+        if (!isApiKeyValid) {
+            window?.apply {
+                disableButtons()
+                updateTextViewWithSlightlyUnevenTypingEffect("Please enter a valid OpenAI API key in the settings.")
             }
         } else {
-
-            when (command) {
-                INTENT_COMMAND_TRANSCRIBE -> {
-
-                    transcribeFile(intent.getStringExtra("PATH")!!)
-
-                }
-
-                INTENT_COMMAND_DOWNLOAD -> {
-                    val ytdl = YoutubeDownloader()
-                    clearCacheDirectory()
-
-                    launch(Dispatchers.IO) {
-                        val downloadJob = async { ytdl.downloadAudio(ContextWrapper(applicationContext), intent.getStringExtra("PATH")!!) }
-                        downloadJob.await()
-
-                        launch(Dispatchers.Main) {
-
-                            transcribeFile(File(ContextWrapper(applicationContext).cacheDir, "test.mp3").absolutePath)
-                        }
-
-                        withContext(Dispatchers.Main) {
-                            window?.disableButtons()
-                            window?.updateTextViewWithSlightlyUnevenTypingEffect("Downloading file...")
-                            window?.enableLoading()
-
-                        }
-                    }
-
-
-
-
-
-                }
-
-                INTENT_COMMAND_EXIT -> {
-                    stopService()
-                    return START_NOT_STICKY
-                }
-            }
-
+            handleCommand(command, intent)
         }
 
-        return super.onStartCommand(intent, flags, startId)
+        return super.onStartCommand(intent, flags, START_NOT_STICKY)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
-
-    fun stopService() {
-        Log.d("FloatingService", "stopService")
-        // stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
-    }
 
     override fun onRebind(intent: Intent?) {
         super.onRebind(intent)
         Log.d("FloatingService", "onRebind")
     }
 
-    private fun showNotification() {
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        val exitIntent =
-            Intent(this, FloatingService::class.java).apply {
-                putExtra(INTENT_COMMAND, INTENT_COMMAND_EXIT)
-            }
-
-        val exitPendingIntent =
-            PendingIntent.getService(
-                this,
-                CODE_EXIT_INTENT,
-                exitIntent,
-                PendingIntent.FLAG_IMMUTABLE,
-            )
-
-        val channel = NotificationChannel(
-            NOTIFICATION_CHANNEL_GENERAL,
-            "quicknote_general",
-            NotificationManager.IMPORTANCE_DEFAULT,
-        )
-        channel.enableLights(false)
-        channel.setShowBadge(false)
-        channel.enableVibration(false)
-        channel.setSound(null, null)
-        channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-
-        try {
-            manager.createNotificationChannel(channel)
-        } catch (ignored: Exception) {
-            // Handle the exception if needed
-        }
-
-        with(
-            NotificationCompat.Builder(
-                this,
-                NOTIFICATION_CHANNEL_GENERAL,
-            ),
-        ) {
-            setTicker(null)
-            setContentTitle(getString(R.string.app_name))
-            setContentText("VoiceVersa is running")
-            setAutoCancel(false)
-            setOngoing(true)
-            setWhen(System.currentTimeMillis())
-            setSmallIcon(R.drawable.icon3)
-            priority = NotificationManager.IMPORTANCE_DEFAULT
-            addAction(
-                NotificationCompat.Action(
-                    0,
-                    "Exit",
-                    exitPendingIntent,
-                ),
-            )
-            startForeground(CODE_FOREGROUND_SERVICE, build())
-        }
-    }
-
-    private fun clearCacheDirectory() {
-        val cacheDirectory: File = cacheDir
-        cacheDirectory.listFiles()?.forEach { file ->
-            file.delete()
-        }
-    }
-
     override fun onContentButtonClicked() {
         if (result.isNotEmpty()) {
             transcriptions.clear()
-            val transcription = Transcription(result, summarizedContent, translatedContent)
-            transcriptions.add(transcription)
+            transcriptions.add(Transcription(result, summarizedContent, translatedContent))
             summarizedContent = ""
             translatedContent = ""
 
@@ -214,6 +93,108 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         }
     }
 
+    private fun handleCommand(command: String?, intent: Intent?) {
+        when (command) {
+            INTENT_COMMAND_TRANSCRIBE -> transcribeFile(intent?.getStringExtra("PATH")!!)
+            INTENT_COMMAND_DOWNLOAD -> downloadAndTranscribeFile(intent?.getStringExtra("PATH")!!)
+            INTENT_COMMAND_EXIT -> {
+                stopService()
+                stopSelf()
+            }
+        }
+    }
+
+    private fun configureNightMode() {
+        val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        AppCompatDelegate.setDefaultNightMode(
+            if (nightMode == Configuration.UI_MODE_NIGHT_YES) AppCompatDelegate.MODE_NIGHT_YES
+            else AppCompatDelegate.MODE_NIGHT_NO
+        )
+    }
+
+    private fun showNotification() {
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val exitIntent = Intent(this, FloatingService::class.java).apply {
+            putExtra(INTENT_COMMAND, INTENT_COMMAND_EXIT)
+        }
+        val exitPendingIntent = PendingIntent.getService(
+            this, CODE_EXIT_INTENT, exitIntent, PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val channel = NotificationChannel(
+            NOTIFICATION_CHANNEL_GENERAL, "voiceversa_general", NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            enableLights(false)
+            setShowBadge(false)
+            enableVibration(false)
+            setSound(null, null)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        }
+
+        manager.createNotificationChannel(channel)
+
+        with(NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_GENERAL)) {
+            setContentTitle(getString(R.string.app_name))
+            setContentText("VoiceVersa is running")
+            setAutoCancel(false)
+            setOngoing(true)
+            setSmallIcon(R.drawable.icon3)
+            priority = NotificationManager.IMPORTANCE_DEFAULT
+            addAction(NotificationCompat.Action(0, "Exit", exitPendingIntent))
+            startForeground(CODE_FOREGROUND_SERVICE, build())
+        }
+    }
+
+    private fun downloadAndTranscribeFile(path: String) {
+        clearCacheDirectory()
+        val ytdl = YoutubeDownloader()
+
+        launch(Dispatchers.IO) {
+            val downloadJob = async { ytdl.downloadAudio(ContextWrapper(applicationContext), path) }
+            downloadJob.await()
+
+            withContext(Dispatchers.Main) {
+                transcribeFile(File(ContextWrapper(applicationContext).cacheDir, "test.mp3").absolutePath)
+                window?.apply {
+                    disableButtons()
+                    updateTextViewWithSlightlyUnevenTypingEffect("Downloading file...")
+                    enableLoading()
+                }
+            }
+        }
+    }
+
+    private fun transcribeFile(tempfile: String) {
+        launch(Dispatchers.IO) {
+            try {
+                val audioFileUri = Uri.fromFile(File(tempfile))
+                val convertedUri = OpenAiHandler().convertAudio(this@FloatingService, audioFileUri, "mp3")
+
+                if (convertedUri != null) {
+                    val openAIResult = OpenAiHandler().callOpenAI(this@FloatingService) ?: return@launch
+                    val whisperResult = OpenAiHandler().whisper(this@FloatingService, openAIResult, convertedUri.path ?: return@launch)
+
+                    inputLanguage = whisperResult
+                    result = OpenAiHandler().correctSpelling(this@FloatingService, openAIResult, whisperResult)
+                    filePath = convertedUri.path ?: return@launch
+
+                    window?.enableButtons()
+                    withContext(Dispatchers.Main) {
+                        window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                clearCacheDirectory()
+            }
+        }
+    }
+
+    private fun clearCacheDirectory() {
+        cacheDir.listFiles()?.forEach { it.delete() }
+    }
+
     fun setSummary(value: String) {
         summarizedContent = value
     }
@@ -222,44 +203,11 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         translatedContent = value
     }
 
-
-
-    private fun transcribeFile(tempfile: String) {
-        launch(Dispatchers.IO) {
-            try {
-
-                val audioFileUri: Uri? = tempfile.let { Uri.fromFile(File(it)) }
-                val convertedUri = audioFileUri?.let {
-                    OpenAiHandler().convertAudio(this@FloatingService, it, "mp3")
-                }
-
-                convertedUri?.let {
-                    val openAIResult =
-                        OpenAiHandler().callOpenAI(this@FloatingService) ?: return@launch
-                    val whisperResult =
-                        OpenAiHandler().whisper(this@FloatingService,openAIResult, it.path ?: return@launch)
-                    inputLanguage = whisperResult
-                    Log.d("FloatingService", "Input Language: $inputLanguage")
-
-                    val correctedText = OpenAiHandler().correctSpelling(this@FloatingService,openAIResult,whisperResult)
-
-                    result = correctedText
-                    filePath = it.path ?: return@launch
-
-                    window!!.enableButtons()
-                    launch(Dispatchers.Main) {
-                        window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
-                    }
-                } ?: run {
-                    // Handle the conversion failure
-                }
-            } catch (e: Exception) {
-                // Handle exceptions, log, or perform any necessary cleanup
-                e.printStackTrace()
-            } finally {
-                // Clear the cache directory
-                clearCacheDirectory()
-            }
-        }
+    fun stopService() {
+        Log.d("FloatingService", "stopService")
+        stopSelf()
     }
+
+
 }
+

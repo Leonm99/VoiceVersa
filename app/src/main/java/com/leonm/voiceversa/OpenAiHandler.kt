@@ -2,20 +2,24 @@ package com.leonm.voiceversa
 
 import android.content.Context
 import android.net.Uri
+import android.text.Html
 import android.util.Log
-import com.aallam.openai.api.audio.Transcription
+import android.view.WindowManager
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.aallam.openai.api.audio.TranscriptionRequest
-import com.aallam.openai.api.chat.ChatCompletion
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
 import com.aallam.openai.api.file.FileSource
 import com.aallam.openai.api.http.Timeout
-import com.aallam.openai.api.model.Model
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.arthenica.mobileffmpeg.FFmpeg
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -23,7 +27,13 @@ import okhttp3.Response
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import java.io.File
+import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
+
+import kotlinx.coroutines.delay
+
+import java.io.IOException
+
 
 class OpenAiHandler {
     private var openai: OpenAI? = null
@@ -31,8 +41,11 @@ class OpenAiHandler {
     private val client = OkHttpClient()
     private var selectedModel: String? = null
     private var language = "English"
+    private val MAX_RETRIES = 3
+    private val RETRY_DELAY_MS = 1000L
 
-     fun callOpenAI(context: Context): OpenAI? {
+
+    fun callOpenAI(context: Context): OpenAI? {
 
         sharedPreferencesManager = SharedPreferencesManager(context)
         val key = sharedPreferencesManager.loadData<String>("API_KEY", "Default Value")
@@ -204,19 +217,93 @@ class OpenAiHandler {
         Log.d("MODEL_IDS",(modelIds.toString()))
     }
 
-    suspend fun checkApiKey(apiKey : String) : Boolean{
+    suspend fun checkApiKey(apiKey: String): Boolean {
+        val client = OkHttpClient()
 
         val request = Request.Builder()
             .url("https://api.openai.com/v1/engines")
             .header("Authorization", "Bearer $apiKey")
             .build()
 
-        val response: Response = withContext(Dispatchers.IO) {
-            client.newCall(request).execute().use { it }
+        repeat(MAX_RETRIES) { attempt ->
+            try {
+                val response: Response = withContext(Dispatchers.IO) {
+                    client.newCall(request).execute().use { it }
+                }
+
+                val isApiKeyValid = apiKey.length == 51 && response.isSuccessful
+                if (isApiKeyValid) {
+                    return true
+                } else if (response.code in 500..599) {
+                    // If server error, retry after delay
+                    delay(RETRY_DELAY_MS)
+                } else {
+                    // If client error or other unexpected response, do not retry
+                    return false
+                }
+            } catch (e: IOException) {
+                // Handle network issues by retrying
+                if (attempt < MAX_RETRIES - 1) {
+                    delay(RETRY_DELAY_MS)
+                } else {
+                    // If max retries reached, return false
+                    return false
+                }
+            }
         }
 
-        val isApiKeyValid = apiKey.length == 51 && response.isSuccessful
-        return isApiKeyValid
+        return false
     }
 
+
+     fun alertApiKey(context: Context) {
+
+         sharedPreferencesManager = SharedPreferencesManager(context)
+
+        val textInputLayout = FrameLayout(context)
+        textInputLayout.setPadding(
+            context.resources.getDimensionPixelOffset(R.dimen.dp_19),
+            0,
+            context.resources.getDimensionPixelOffset(R.dimen.dp_19),
+            0
+        )
+        val input = EditText(context)
+        input.setHintTextColor(context.resources.getColor(R.color.md_theme_dark_onPrimary))
+
+        textInputLayout.addView(input)
+
+        val alert = AlertDialog.Builder(context, androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
+            .setTitle("Api key")
+            .setCancelable(false)
+            .setView(textInputLayout)
+            .setMessage("Please enter a valid OpenAI API key.")
+            .setPositiveButton(Html.fromHtml("<font color='#FFFFFF'>Submit</font>",0)) { dialog, _ ->
+                var isKeyValid = false
+                runBlocking {  isKeyValid = checkApiKey(input.text.toString()) }
+                if (isKeyValid) {
+                    sharedPreferencesManager.saveData("API_KEY", input.text.toString())
+                    Toast.makeText(context, "Api key is valid", Toast.LENGTH_LONG)
+                        .show()
+                    dialog.cancel()
+                }else{
+                    Toast.makeText(context, "Api key is invalid", Toast.LENGTH_LONG)
+                        .show()
+                    alertApiKey(context)
+
+                }
+
+            }
+            .setNegativeButton(Html.fromHtml("<font color='#FFFFFF'>Exit</font>",0)) { dialog, _ ->
+                dialog.cancel()
+                exitProcess(0)
+
+            }.create()
+         alert.window?.setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        alert.show()
+
+    }
+
+
+
 }
+
