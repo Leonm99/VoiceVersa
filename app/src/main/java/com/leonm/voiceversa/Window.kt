@@ -3,6 +3,8 @@ package com.leonm.voiceversa
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
@@ -40,23 +42,20 @@ class Window(
     private val floatingService: FloatingService,
     override val coroutineContext: CoroutineContext
 ) : CoroutineScope {
+
     private lateinit var textView: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var cardView: CardView
     private lateinit var contentButton: Button
     private lateinit var summarizeButton: Button
     private lateinit var translationButton: Button
-
-
+    private lateinit var copyButton: Button
     private var newText: String = ""
     private var charIndex: Int = 0
     private var metrics = Pair(0, 0)
-
     private var continueTextAnimation = true
     private var originalText = ""
-
     private var isWindowOpen = false
-
     private val windowManager: WindowManager =
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val layoutInflater: LayoutInflater =
@@ -113,6 +112,7 @@ class Window(
         contentButton = rootView.findViewById(R.id.content_button)
         summarizeButton = rootView.findViewById(R.id.summarize_content)
         translationButton = rootView.findViewById(R.id.translate_content)
+        copyButton = rootView.findViewById(R.id.copy_button)
 
 
 
@@ -140,11 +140,13 @@ class Window(
         contentButton.setOnClickListener { onContentButtonClicked() }
         summarizeButton.setOnClickListener { summarizeButtonClicked() }
         translationButton.setOnClickListener { translationButtonClicked() }
+        copyButton.setOnClickListener { copyButtonClicked() }
 
 
 
 
     }
+
 
     private fun onContentButtonClicked() {
         contentButton.isClickable = false
@@ -185,6 +187,14 @@ class Window(
             }
         }
     }
+
+    private fun copyButtonClicked() {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("text", textView.text.toString())
+        clipboard.setPrimaryClip(clip)
+        showToast("Copied to clipboard!")
+    }
+
 
 
 
@@ -228,7 +238,7 @@ class Window(
 
     fun updateTextViewWithSlightlyUnevenTypingEffect(newText: String) {
         progressBar.visibility = View.GONE
-        originalText = newText
+        originalText = "\"" + newText + "\""
         this.newText = ""
         charIndex = 0
         continueTextAnimation = true
@@ -289,12 +299,14 @@ class Window(
         contentButton.isClickable = true
         summarizeButton.isClickable = true
         translationButton.isClickable = true
+        copyButton.isClickable = true
     }
 
     fun disableButtons() {
         contentButton.isClickable = false
         summarizeButton.isClickable = false
         translationButton.isClickable = false
+        copyButton.isClickable = false
     }
 
     fun enableLoading() {

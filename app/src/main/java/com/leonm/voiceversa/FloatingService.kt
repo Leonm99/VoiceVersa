@@ -58,6 +58,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         window?.open()
 
         val command = intent?.getStringExtra(INTENT_COMMAND)
+
         val isApiKeyValid = SharedPreferencesManager(applicationContext)
             .loadData("isApiKeyValid", "false").toBoolean()
 
@@ -70,7 +71,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
             handleCommand(command, intent)
         }
 
-        return START_NOT_STICKY
+        return super.onStartCommand(intent, flags, START_NOT_STICKY)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -96,10 +97,22 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
     }
 
     private fun handleCommand(command: String?, intent: Intent?) {
+        Log.d("FloatingService", "Received command: $command")
+
         when (command) {
-            INTENT_COMMAND_TRANSCRIBE -> transcribeFile(intent?.getStringExtra("PATH") ?: "")
-            INTENT_COMMAND_DOWNLOAD -> downloadAndTranscribeFile(intent?.getStringExtra("PATH") ?: "")
-            INTENT_COMMAND_EXIT -> stopService()
+            INTENT_COMMAND_TRANSCRIBE -> {
+                val path = intent?.getStringExtra("PATH") ?: ""
+                Log.d("FloatingService", "Transcribe command received with path: $path")
+                transcribeFile(path)
+            }
+            INTENT_COMMAND_DOWNLOAD -> {
+                downloadAndTranscribeFile(intent?.getStringExtra("PATH") ?: "")
+                Log.d("FloatingService", "Transcribe command received with TEST: ")
+            }
+            INTENT_COMMAND_EXIT -> {
+                stopService()
+                Log.d("FloatingService", "STTTTTTth:")
+            }
         }
     }
 
@@ -164,26 +177,35 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
     }
 
     private fun transcribeFile(tempfile: String) {
+        Log.d("FloatingService", "Starting transcription for file: $tempfile")
         launch(Dispatchers.IO) {
             try {
-                val audioFileUri = Uri.fromFile(File(tempfile))
-                val convertedUri = OpenAiHandler(this@FloatingService).convertAudio( audioFileUri, "mp3")
+                val audioFile = File(tempfile)
+                if (!audioFile.exists()) {
+                    Log.e("FloatingService", "File does not exist: $tempfile")
+                    return@launch
+                }
+                val audioFileUri = Uri.fromFile(audioFile)
+                val convertedUri = OpenAiHandler(this@FloatingService).convertAudio(audioFileUri, "mp3")
 
-                convertedUri?.let {
-                    OpenAiHandler(this@FloatingService).initOpenAI() ?: return@launch
-                    val whisperResult = OpenAiHandler(this@FloatingService).whisper( it.path ?: return@launch)
+                if (convertedUri == null) {
+                    Log.e("FloatingService", "Failed to convert audio file.")
+                    return@launch
+                }
 
-                    inputLanguage = whisperResult
-                    result = OpenAiHandler(this@FloatingService).correctSpelling(whisperResult)
-                    filePath = it.path ?: return@launch
+                OpenAiHandler(this@FloatingService).initOpenAI()
+                val whisperResult = OpenAiHandler(this@FloatingService).whisper(convertedUri.path ?: return@launch)
 
-                    window?.enableButtons()
-                    withContext(Dispatchers.Main) {
-                        window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
-                    }
+                inputLanguage = whisperResult
+                result = OpenAiHandler(this@FloatingService).correctSpelling(whisperResult)
+                filePath = convertedUri.path ?: return@launch
+
+                window?.enableButtons()
+                withContext(Dispatchers.Main) {
+                    window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("FloatingService", "Error during transcription", e)
             } finally {
                 clearCacheDirectory()
             }
@@ -208,4 +230,3 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         stopSelf()
     }
 }
-

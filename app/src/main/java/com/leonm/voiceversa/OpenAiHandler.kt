@@ -113,7 +113,7 @@ class OpenAiHandler(private val context: Context) {
             messages = listOf(
                 ChatMessage(
                     role = ChatRole.System,
-                    content = "You are a text bot and your task is to correct any spelling discrepancies in the transcribed text. ONLY add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. Use the same language the text is written in."
+                    content = "Your task is to correct any spelling discrepancies in the transcribed text. Make the text look more presentable Add necessary punctuation such as periods, commas, capitalization, paragraphs and use only the context provided. Use the same language the text is written in."
                 ),
                 ChatMessage(
                     role = ChatRole.User,
@@ -200,9 +200,11 @@ class OpenAiHandler(private val context: Context) {
                 exitProcess(0)
             }
             .create()
-        alert.window?.setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
+
         alert.show()
     }
+
+
 
     private fun getModel(): String {
         return sharedPreferencesManager.loadData<String>("MODEL_STRING", "gpt-3.5-turbo")

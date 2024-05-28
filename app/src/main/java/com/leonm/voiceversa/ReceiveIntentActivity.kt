@@ -5,12 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
 
 class ReceiveIntentActivity : Activity() {
 
@@ -32,6 +29,7 @@ class ReceiveIntentActivity : Activity() {
                     uri?.let {
                         val audioFile = saveToCache(it)
                         audioFile?.let { file ->
+                            Log.d("ReceiveIntentActivity", "Audio file path: ${file.absolutePath}")
                             startFloatingService("TRANSCRIBE", file.absolutePath)
                         }
                     }
@@ -39,6 +37,7 @@ class ReceiveIntentActivity : Activity() {
                 intent.type?.startsWith("text/") == true -> {
                     val link = intent.extras?.getString(Intent.EXTRA_TEXT)
                     link?.let {
+                        Log.d("ReceiveIntentActivity", "Text link: $it")
                         startFloatingService("DOWNLOAD", it)
                     }
                 }
@@ -63,10 +62,10 @@ class ReceiveIntentActivity : Activity() {
                 FileOutputStream(file).use { outputStream ->
                     inputStream.copyTo(outputStream)
                 }
+                Log.d("ReceiveIntentActivity", "File saved to cache: ${file.absolutePath}")
                 file
             }
         } catch (e: Exception) {
-            // Log error message for better debugging
             Log.e("ReceiveIntentActivity", "Failed to save file to cache", e)
             null
         }
@@ -78,6 +77,7 @@ class ReceiveIntentActivity : Activity() {
     }
 
     private fun startFloatingService(command: String, path: String) {
+        Log.d("ReceiveIntentActivity", "Starting service with command: $command and path: $path")
         val intent = Intent(this, FloatingService::class.java).apply {
             putExtra(INTENT_COMMAND, command)
             putExtra("PATH", path)
@@ -85,7 +85,4 @@ class ReceiveIntentActivity : Activity() {
         startForegroundService(intent)
     }
 
-    companion object {
-        const val INTENT_COMMAND = "INTENT_COMMAND"
-    }
 }

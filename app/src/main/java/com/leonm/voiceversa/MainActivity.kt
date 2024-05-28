@@ -78,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         configureNightMode()
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -104,10 +105,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun configureNightMode() {
         val nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        AppCompatDelegate.setDefaultNightMode(
-            if (nightMode == Configuration.UI_MODE_NIGHT_YES) AppCompatDelegate.MODE_NIGHT_YES
-            else AppCompatDelegate.MODE_NIGHT_NO
-        )
+        if (nightMode == Configuration.UI_MODE_NIGHT_YES) {
+            AppCompatDelegate.MODE_NIGHT_YES
+        } else {
+            AppCompatDelegate.MODE_NIGHT_NO
+        }
     }
 
     private val permissionRequestLauncher =

@@ -1,20 +1,16 @@
 package com.leonm.voiceversa
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
-import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -55,7 +51,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         jsonManager = JsonManager(requireContext())
         recyclerView = binding.recyclerView
         mainActivity = (activity as? MainActivity)!!
-        tAdapter = TranscriptionAdapter(transcriptions, this, mainActivity)
+        tAdapter = TranscriptionAdapter(transcriptions)
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -63,7 +59,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
                     tAdapter.toggleSelectionMode()
                 } else {
                     isEnabled = false
-                    requireActivity().onBackPressed()
+                    requireActivity().onBackPressedDispatcher.onBackPressed()
                 }
             }
         })
@@ -91,18 +87,11 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     }
 
     override fun onDeleteClick(transcription: Transcription) {
-        val position = transcriptions.indexOf(transcription)
-        if (position != -1) {
-            transcriptions.removeAt(position)
-            recyclerView.adapter?.notifyItemRemoved(position)
-            jsonManager.saveTranscriptions(transcriptions)
-        }
+        deleteTranscription(transcription)
     }
 
     private fun setupRecyclerView() {
-        transcriptions.clear()
-        transcriptions.addAll(jsonManager.loadTranscriptions())
-        transcriptions.sortByDescending { it.timestamp }
+        loadTranscriptions()
         recyclerView.adapter = tAdapter
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
@@ -113,12 +102,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
     private fun setupFabListeners() {
         binding.testFab.setOnClickListener {
-            saveTranscriptionToFile(
-                getString(R.string.lorem_ipsum),
-                "DAS IST DIE SUMMARY",
-                "DAS IST DIE TRANSLATION"
-            )
-            reloadData()
+            addSampleTranscription()
         }
 
         binding.fab.setOnClickListener {
@@ -138,26 +122,38 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         }
     }
 
+    private fun addSampleTranscription() {
+        saveTranscriptionToFile(
+            getString(R.string.lorem_ipsum),
+            "DAS IST DIE SUMMARY",
+            "DAS IST DIE TRANSLATION"
+        )
+        reloadData()
+    }
+
+    private fun deleteTranscription(transcription: Transcription) {
+        val position = transcriptions.indexOf(transcription)
+        if (position != -1) {
+            transcriptions.removeAt(position)
+            recyclerView.adapter?.notifyItemRemoved(position)
+            jsonManager.saveTranscriptions(transcriptions)
+        }
+    }
+
     private fun deleteMultiple() {
         try {
             val selectedItems = tAdapter.getSelectedItems().sortedDescending()
             selectedItems.forEach { position ->
                 if (position in transcriptions.indices) {
                     transcriptions.removeAt(position)
+                    recyclerView.adapter?.notifyItemRemoved(position)
                 }
             }
             tAdapter.setSelectedItems(emptyList())
-            recyclerView.adapter?.notifyDataSetChanged()
             jsonManager.saveTranscriptions(transcriptions)
             tAdapter.toggleSelectionMode()
         } catch (e: Exception) {
             handleError(e)
-        }
-    }
-
-    private suspend fun updateOutputText() {
-        withContext(Dispatchers.Main) {
-            recyclerView.adapter?.notifyDataSetChanged()
         }
     }
 
@@ -170,10 +166,14 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     }
 
     private fun reloadData() {
+        loadTranscriptions()
+        recyclerView.adapter?.notifyDataSetChanged()
+    }
+
+    private fun loadTranscriptions() {
         transcriptions.clear()
         transcriptions.addAll(jsonManager.loadTranscriptions())
         transcriptions.sortByDescending { it.timestamp }
-        recyclerView.adapter?.notifyDataSetChanged()
     }
 
     private suspend fun performWhisperTranscription(path: String?) {
@@ -182,7 +182,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
             openAiHandler.initOpenAI()
             val result = openAiHandler.whisper(path!!)
             saveTranscriptionToFile(result, "", "")
-            updateOutputText()
+            recyclerView.adapter?.notifyDataSetChanged()
         } catch (e: Exception) {
             handleError(e)
         } finally {
