@@ -38,6 +38,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:fontFamily="@font/roboto"
                     android:ems="10"
                     android:hint="@string/api_key"
                     android:inputType="textPassword"
@@ -115,6 +116,7 @@
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:fontFamily="@font/roboto"
             android:layout_marginTop="5dp"
             android:hint="Model">
 
@@ -122,6 +124,7 @@
                 android:id="@+id/autocomplete_text2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/roboto"
                 android:inputType="none">
 
             </AutoCompleteTextView>
@@ -142,6 +145,7 @@
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
             android:switchPadding="10dp"
+            android:fontFamily="@font/roboto"
             android:text="@string/transcription_text_correction_more_readable_costs_slightly_more"
             android:textAlignment="viewStart" />
 

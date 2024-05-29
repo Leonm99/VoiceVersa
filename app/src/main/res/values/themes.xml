@@ -78,6 +78,10 @@
         <item name="android:padding">3dp</item>
     </style>
 
+    <style name="myTextView" parent="Widget.AppCompat.TextView">
+        <item name="fontFamily">@font/roboto</item>
+    </style>
+
 
 
 </resources>

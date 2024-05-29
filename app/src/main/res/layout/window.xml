@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="bottom"
@@ -21,10 +22,11 @@
         android:focusable="false"
         android:focusableInTouchMode="false"
         android:minHeight="50dp"
+
         android:theme="@style/AppTheme"
         app:cardCornerRadius="0dp"
         app:strokeColor="@android:color/transparent"
-        app:strokeWidth="0dp" >
+        app:strokeWidth="0dp">
 
     </com.google.android.material.card.MaterialCardView>
 
@@ -57,52 +59,84 @@
                 android:id="@+id/divider"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="15dp"
-                android:background="?android:attr/listDivider" />
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginTop="30dp"
+                android:background="?attr/colorOnSecondaryContainer"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/header_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="5dp"
+                android:fontFamily="@font/roboto"
+                android:text="Transcription:"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                android:textSize="24sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
             <FrameLayout
                 android:id="@+id/contentContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_margin="13dp"
+                android:layout_marginHorizontal="13dp"
+                android:layout_marginBottom="10dp"
                 android:layout_weight="1"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
-                android:minHeight="220dp">
+                android:minHeight="50dp"
+               >
+
+                <TextView
+                    android:id="@+id/loading_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal|top"
+                    android:layout_marginTop="160dp"
+                    android:fontFamily="@font/roboto"
+                    android:text="Loading..."
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSecondaryContainer"
+                    android:textSize="14sp"
+                    android:visibility="visible"
+                    tools:visibility="visible" />
 
                 <ProgressBar
                     android:id="@+id/loading"
                     style="@style/MyProgressBar"
-                    android:layout_width="451dp"
-                    android:layout_height="102dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:clickable="false"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
-                    android:longClickable="false" />
+                    android:longClickable="false"
+                    android:scaleX="2"
+                    android:scaleY="2"
+                    android:visibility="visible"
+                    tools:visibility="visible" />
 
-                <ScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
-                    android:isScrollContainer="true"
-                    android:maxHeight="50dp">
+
 
                     <TextView
                         android:id="@+id/result_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@null"
                         android:breakStrategy="high_quality"
-                        android:elevation="0dp"
+
                         android:focusable="false"
                         android:focusableInTouchMode="false"
                         android:fontFamily="@font/roboto"
                         android:lineSpacingExtra="1.5dp"
                         android:lineSpacingMultiplier="1"
+                        android:maxHeight="500dp"
                         android:padding="5dp"
+                        android:scrollbarStyle="insideOverlay"
+                        android:scrollbars="vertical"
                         android:textAlignment="viewStart"
                         android:textColor="?attr/colorOnSecondaryContainer"
                         android:textCursorDrawable="?android:attr/textCursorDrawable"
@@ -110,12 +144,14 @@
                         android:textSelectHandle="?android:attr/textSelectHandle"
                         android:textSelectHandleLeft="?android:attr/textSelectHandleLeft"
                         android:textSelectHandleRight="?android:attr/textSelectHandleRight"
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        android:visibility="invisible"
+                        tools:visibility="visible" />
                     <!-- android:shadowColor="#20000000"
                     android:shadowDx="4"
                     android:shadowDy="4"
                     android:shadowRadius="10" -->
-                </ScrollView>
+
 
             </FrameLayout>
 
@@ -123,9 +159,11 @@
                 android:id="@+id/divider2"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginBottom="5dp"
-                android:background="?android:attr/listDivider" />
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginBottom="15dp"
+                android:background="?attr/colorOnSecondaryContainer"
+                android:visibility="invisible"
+                tools:visibility="visible" />
 
             <LinearLayout
                 android:layout_width="match_parent"

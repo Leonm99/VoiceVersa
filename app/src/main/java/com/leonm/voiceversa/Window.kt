@@ -9,6 +9,7 @@ import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -20,6 +21,8 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -46,16 +49,24 @@ class Window(
     private lateinit var textView: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var cardView: CardView
-    private lateinit var contentButton: Button
-    private lateinit var summarizeButton: Button
-    private lateinit var translationButton: Button
-    private lateinit var copyButton: Button
+    private lateinit var contentButton: MaterialButton
+    private lateinit var summarizeButton: MaterialButton
+    private lateinit var translationButton: MaterialButton
+    private lateinit var copyButton: MaterialButton
+    private lateinit var divider: View
+    private lateinit var divider2: View
+    private lateinit var headerText: TextView
+    private lateinit var loadingText: TextView
     private var newText: String = ""
     private var charIndex: Int = 0
     private var metrics = Pair(0, 0)
     private var continueTextAnimation = true
     private var originalText = ""
     private var isWindowOpen = false
+    private var translatedText = ""
+    private var summary = ""
+    private var transcription: String = ""
+    private var isLoading = true
     private val windowManager: WindowManager =
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val layoutInflater: LayoutInflater =
@@ -113,6 +124,10 @@ class Window(
         summarizeButton = rootView.findViewById(R.id.summarize_content)
         translationButton = rootView.findViewById(R.id.translate_content)
         copyButton = rootView.findViewById(R.id.copy_button)
+        headerText = rootView.findViewById(R.id.header_text)
+        divider = rootView.findViewById(R.id.divider)
+        divider2 = rootView.findViewById(R.id.divider2)
+        loadingText = rootView.findViewById(R.id.loading_text)
 
 
 
@@ -149,43 +164,81 @@ class Window(
 
 
     private fun onContentButtonClicked() {
-        contentButton.isClickable = false
-        windowCallback.onContentButtonClicked()
-        if (originalText.isNotEmpty()) {
-            showToast("Transcription saved!")
-            close()
+        if ("\"" + transcription + "\"" != textView.text.toString()) {
+            contentButton.icon = ContextCompat.getDrawable(context, R.drawable.save)
+            toggleLoading()
+            headerText.text = "Transcription:"
+            launch(Dispatchers.Main) {
+                updateTextViewWithSlightlyUnevenTypingEffect(transcription)
+            }
+
+        }else{
+            contentButton.isClickable = false
+            windowCallback.onContentButtonClicked()
+            if (originalText.isNotEmpty()) {
+                showToast("Transcription saved!")
+                close()
+        }
+
         }
     }
 
     private fun summarizeButtonClicked() {
-        summarizeButton.isClickable = false
-        stopTextAnimation()
-        progressBar.visibility = View.VISIBLE
-        launch(Dispatchers.IO) {
-            OpenAiHandler(context).initOpenAI() ?: return@launch
-            val summary = OpenAiHandler(context).summarize(originalText)
-
-            floatingService.setSummary(summary)
+        contentButton.icon = ContextCompat.getDrawable(context, R.drawable.reply)
+        if (summary.isNotEmpty()) {
+            toggleLoading()
+            headerText.text = "Summary:"
             launch(Dispatchers.Main) {
                 updateTextViewWithSlightlyUnevenTypingEffect(summary)
             }
+
+        }else{
+            summarizeButton.isClickable = false
+            stopTextAnimation()
+            toggleLoading()
+            headerText.text = "Summary:"
+            launch(Dispatchers.IO) {
+                OpenAiHandler(context).initOpenAI()
+                summary = OpenAiHandler(context).summarize(transcription)
+
+                floatingService.setSummary(summary)
+                launch(Dispatchers.Main) {
+                    updateTextViewWithSlightlyUnevenTypingEffect(summary)
+                }
+            }
+
         }
+
     }
 
     private fun translationButtonClicked() {
-        translationButton.isClickable = false
-        stopTextAnimation()
-        progressBar.visibility = View.VISIBLE
-        launch(Dispatchers.IO) {
-            val openAiHandler = OpenAiHandler(context)
-            openAiHandler.initOpenAI() ?: return@launch
-            val translatedText = openAiHandler.translate(originalText)
-
-            floatingService.setTranslation(translatedText)
+        contentButton.icon = ContextCompat.getDrawable(context, R.drawable.reply)
+        if (translatedText.isNotEmpty()) {
+            toggleLoading()
+            headerText.text = "Translation:"
             launch(Dispatchers.Main) {
                 updateTextViewWithSlightlyUnevenTypingEffect(translatedText)
             }
+
+        }else{
+            contentButton.icon = ContextCompat.getDrawable(context, R.drawable.reply)
+            translationButton.isClickable = false
+            stopTextAnimation()
+            toggleLoading()
+            headerText.text = "Translation:"
+            launch(Dispatchers.IO) {
+                val openAiHandler = OpenAiHandler(context)
+                openAiHandler.initOpenAI() ?: return@launch
+                translatedText = openAiHandler.translate(transcription)
+
+                floatingService.setTranslation(translatedText)
+                launch(Dispatchers.Main) {
+                    updateTextViewWithSlightlyUnevenTypingEffect(translatedText)
+                }
+            }
+
         }
+
     }
 
     private fun copyButtonClicked() {
@@ -237,7 +290,12 @@ class Window(
     }
 
     fun updateTextViewWithSlightlyUnevenTypingEffect(newText: String) {
-        progressBar.visibility = View.GONE
+        if (transcription.isEmpty()){
+            transcription = newText
+
+        }
+
+        toggleLoading()
         originalText = "\"" + newText + "\""
         this.newText = ""
         charIndex = 0
@@ -249,8 +307,9 @@ class Window(
     private fun displayTextWithSlightlyUnevenTiming(text: String) {
         val delay = 5L
         val unevenFactor = 0.5
-
+        disableButtons()
         GlobalScope.launch {
+
             while (charIndex <= text.length && continueTextAnimation) {
                 newText = text.substring(0, charIndex)
                 withContext(Dispatchers.Main) {
@@ -261,7 +320,9 @@ class Window(
                     (delay * (1 + (Math.random() - 0.5) * 2 * unevenFactor)).toLong()
                 delay(nextDelay)
             }
+
         }
+        enableButtons()
     }
 
     private fun stopTextAnimation() {
@@ -300,6 +361,7 @@ class Window(
         summarizeButton.isClickable = true
         translationButton.isClickable = true
         copyButton.isClickable = true
+
     }
 
     fun disableButtons() {
@@ -309,9 +371,30 @@ class Window(
         copyButton.isClickable = false
     }
 
-    fun enableLoading() {
-        progressBar.visibility = View.VISIBLE
+    private fun toggleLoading() {
+        if (!isLoading){
+            disableButtons()
+            progressBar.visibility = View.VISIBLE
+            loadingText.visibility = View.VISIBLE
+            divider.visibility = View.GONE
+            divider2.visibility = View.GONE
+            headerText.visibility = View.GONE
+            textView.visibility = View.GONE
+            isLoading = !isLoading
+        }else{
+            enableButtons()
+            progressBar.visibility = View.GONE
+            loadingText.visibility = View.GONE
+            divider.visibility = View.VISIBLE
+            divider2.visibility = View.VISIBLE
+            headerText.visibility = View.VISIBLE
+            textView.visibility = View.VISIBLE
+            isLoading = !isLoading
+        }
+
+
     }
+
 
 
 }

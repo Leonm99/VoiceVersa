@@ -170,7 +170,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                 window?.apply {
                     disableButtons()
                     updateTextViewWithSlightlyUnevenTypingEffect("Downloading file...")
-                    enableLoading()
+
                 }
             }
         }
@@ -178,6 +178,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
 
     private fun transcribeFile(tempfile: String) {
         Log.d("FloatingService", "Starting transcription for file: $tempfile")
+
         launch(Dispatchers.IO) {
             try {
                 val audioFile = File(tempfile)
