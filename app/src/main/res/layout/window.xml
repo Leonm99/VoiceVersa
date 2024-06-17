@@ -121,33 +121,32 @@
                     tools:visibility="visible" />
 
 
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-                    <TextView
-                        android:id="@+id/result_text"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:breakStrategy="high_quality"
+                        android:orientation="vertical" >
 
-                        android:focusable="false"
-                        android:focusableInTouchMode="false"
-                        android:fontFamily="@font/roboto"
-                        android:lineSpacingExtra="1.5dp"
-                        android:lineSpacingMultiplier="1"
-                        android:maxHeight="500dp"
-                        android:padding="5dp"
-                        android:scrollbarStyle="insideOverlay"
-                        android:scrollbars="vertical"
-                        android:textAlignment="viewStart"
-                        android:textColor="?attr/colorOnSecondaryContainer"
-                        android:textCursorDrawable="?android:attr/textCursorDrawable"
-                        android:textIsSelectable="true"
-                        android:textSelectHandle="?android:attr/textSelectHandle"
-                        android:textSelectHandleLeft="?android:attr/textSelectHandleLeft"
-                        android:textSelectHandleRight="?android:attr/textSelectHandleRight"
-                        android:textSize="16sp"
-                        android:visibility="invisible"
-                        tools:visibility="visible" />
-                    <!-- android:shadowColor="#20000000"
+                        <TextView
+                            android:id="@+id/result_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:breakStrategy="high_quality"
+                            android:fontFamily="@font/roboto"
+                            android:lineSpacingExtra="1.8dp"
+                            android:lineSpacingMultiplier="1"
+                            android:maxHeight="500dp"
+                            android:padding="5dp"
+                            android:textColor="?attr/colorOnSecondaryContainer"
+                            android:textAlignment="viewStart"
+                            />
+                    </LinearLayout>
+                </ScrollView>
+
+                <!-- android:shadowColor="#20000000"
                     android:shadowDx="4"
                     android:shadowDy="4"
                     android:shadowRadius="10" -->
