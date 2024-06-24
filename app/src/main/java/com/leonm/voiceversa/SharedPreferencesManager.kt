@@ -2,16 +2,29 @@ package com.leonm.voiceversa
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 
 class SharedPreferencesManager(context: Context) {
-     val sharedPreferences: SharedPreferences by lazy {
-        context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
-    }
+
+    private var masterKey: MasterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    var sharedPreferences: SharedPreferences = EncryptedSharedPreferences.create(
+        context,
+        "secret_shared_prefs",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
+
+
+
+
      val gson: Gson by lazy { Gson() }
 
     fun <T> saveData(key: String, data: T) {

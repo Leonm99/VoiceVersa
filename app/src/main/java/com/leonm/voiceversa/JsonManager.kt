@@ -15,12 +15,14 @@ class JsonManager(private val context: Context) {
 
     fun loadTranscriptions(): List<Transcription> {
         return try {
+            Log.d("test", file.toString())
             if (file.exists()) {
                 val jsonTranscriptions = file.readText()
                 gson.fromJson(jsonTranscriptions, object : TypeToken<List<Transcription>>() {}.type)
             } else {
                 emptyList()
             }
+
         } catch (e: IOException) {
             handleError(e)
             emptyList()
@@ -31,6 +33,14 @@ class JsonManager(private val context: Context) {
         try {
             val jsonTranscriptions = gson.toJson(transcriptions)
             file.writeText(jsonTranscriptions)
+        } catch (e: IOException) {
+            handleError(e)
+        }
+    }
+
+    fun deleteTranscriptions() {
+        try {
+           file.delete()
         } catch (e: IOException) {
             handleError(e)
         }
