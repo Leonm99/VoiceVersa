@@ -6,6 +6,7 @@ import android.animation.AnimatorListenerAdapter
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.PixelFormat
 import android.os.Build
 import android.util.DisplayMetrics
@@ -49,6 +50,7 @@ class Window(
     private lateinit var textView: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var cardView: CardView
+    private lateinit var fillerCardview: CardView
     private lateinit var contentButton: MaterialButton
     private lateinit var summarizeButton: MaterialButton
     private lateinit var translationButton: MaterialButton
@@ -56,7 +58,7 @@ class Window(
     private lateinit var divider: View
     private lateinit var divider2: View
     private lateinit var headerText: TextView
-    private lateinit var loadingText: TextView
+    lateinit var loadingText: TextView
     private var newText: String = ""
     private var charIndex: Int = 0
     private var metrics = Pair(0, 0)
@@ -91,13 +93,18 @@ class Window(
         initWindow()
     }
 
+
+
     private fun initWindowParams() {
+        val resourceId = getNavigationBarHeight()
+        val displayMetrics = Resources.getSystem().displayMetrics
+        metrics = Pair(displayMetrics.widthPixels, displayMetrics.heightPixels)
         getCurrentDisplayMetrics()
         windowParams.gravity = Gravity.BOTTOM
         windowParams.width = metrics.first
         windowParams.height = WindowManager.LayoutParams.WRAP_CONTENT
         windowParams.x = 0
-        windowParams.y = 0
+        windowParams.y = -resourceId
     }
 
     private fun initWindow() {
@@ -128,7 +135,7 @@ class Window(
         divider = rootView.findViewById(R.id.divider)
         divider2 = rootView.findViewById(R.id.divider2)
         loadingText = rootView.findViewById(R.id.loading_text)
-
+        fillerCardview = rootView.findViewById(R.id.filler_cardview)
 
 
         rootView.isFocusableInTouchMode = true
@@ -156,6 +163,8 @@ class Window(
         summarizeButton.setOnClickListener { summarizeButtonClicked() }
         translationButton.setOnClickListener { translationButtonClicked() }
         copyButton.setOnClickListener { copyButtonClicked() }
+        val resourceId = getNavigationBarHeight()
+        fillerCardview.layoutParams.height = resourceId
 
 
 
@@ -164,16 +173,14 @@ class Window(
 
 
     private fun onContentButtonClicked() {
-        if ("\"" + transcription + "\"" != textView.text.toString()) {
+        disableButtons()
+        if (!textView.text.toString().contains(transcription)) {
             contentButton.icon = ContextCompat.getDrawable(context, R.drawable.save)
-            toggleLoading()
             headerText.text = "Transcription:"
-            launch(Dispatchers.Main) {
-                updateTextViewWithSlightlyUnevenTypingEffect(transcription)
-            }
+            textView.text = transcription
+            enableButtons()
 
         }else{
-            contentButton.isClickable = false
             windowCallback.onContentButtonClicked()
             if (originalText.isNotEmpty()) {
                 showToast("Transcription saved!")
@@ -184,19 +191,20 @@ class Window(
     }
 
     private fun summarizeButtonClicked() {
+        disableButtons()
         contentButton.icon = ContextCompat.getDrawable(context, R.drawable.reply)
         if (summary.isNotEmpty()) {
-            toggleLoading()
             headerText.text = "Summary:"
-            launch(Dispatchers.Main) {
-                updateTextViewWithSlightlyUnevenTypingEffect(summary)
-            }
+            textView.text = summary
+            enableButtons()
 
         }else{
+            disableButtons()
             summarizeButton.isClickable = false
             stopTextAnimation()
             toggleLoading()
             headerText.text = "Summary:"
+            loadingText.text = "Summarize text..."
             launch(Dispatchers.IO) {
                 OpenAiHandler(context).initOpenAI()
                 summary = OpenAiHandler(context).summarize(transcription)
@@ -212,24 +220,25 @@ class Window(
     }
 
     private fun translationButtonClicked() {
+        disableButtons()
         contentButton.icon = ContextCompat.getDrawable(context, R.drawable.reply)
         if (translatedText.isNotEmpty()) {
-            toggleLoading()
             headerText.text = "Translation:"
-            launch(Dispatchers.Main) {
-                updateTextViewWithSlightlyUnevenTypingEffect(translatedText)
-            }
-
+            textView.text = translatedText
+            enableButtons()
         }else{
+            disableButtons()
             contentButton.icon = ContextCompat.getDrawable(context, R.drawable.reply)
-            translationButton.isClickable = false
             stopTextAnimation()
             toggleLoading()
+
             headerText.text = "Translation:"
+            loadingText.text = "Translating text..."
             launch(Dispatchers.IO) {
                 val openAiHandler = OpenAiHandler(context)
                 openAiHandler.initOpenAI() ?: return@launch
                 translatedText = openAiHandler.translate(transcription)
+
 
                 floatingService.setTranslation(translatedText)
                 launch(Dispatchers.Main) {
@@ -247,8 +256,6 @@ class Window(
         clipboard.setPrimaryClip(clip)
         showToast("Copied to clipboard!")
     }
-
-
 
 
     fun open() {
@@ -281,8 +288,8 @@ class Window(
                 .setStartDelay(500)
                 .setListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
-                        windowManager.removeView(rootView)
                         floatingService.stopService()
+                        windowManager.removeView(rootView)
                     }
                 })
                 .start()
@@ -296,7 +303,7 @@ class Window(
         }
 
         toggleLoading()
-        originalText = "\"" + newText + "\""
+        originalText = newText
         this.newText = ""
         charIndex = 0
         continueTextAnimation = true
@@ -348,7 +355,15 @@ class Window(
         metrics = Pair(screenWidth, screenHeight)
     }
 
-
+    private fun getNavigationBarHeight(): Int {
+        val resources = context.resources
+        val resourceId: Int = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        return if (resourceId > 0) {
+            resources.getDimensionPixelSize(resourceId)
+        } else {
+            0
+        }
+    }
 
     private fun showToast(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
