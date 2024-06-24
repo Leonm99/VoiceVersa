@@ -53,6 +53,6 @@
     <string name="toggle_password_visibility">Toggle password visibility</string>
     <string name="translation_language">Translation Language</string>
     <string name="language">Language</string>
-    <string name="transcription_text_correction_more_readable_costs_slightly_more">Transcription text correction\n(more readable, costs slightly more)</string>
+    <string name="transcription_text_correction_more_readable_costs_slightly_more">Transcription text correction\n(more readable but more loading+cost)</string>
 
 </resources>

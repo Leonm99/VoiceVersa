@@ -3,6 +3,7 @@ package com.leonm.voiceversa
 
 
 import android.os.Bundle
+import android.text.Html
 import android.text.method.PasswordTransformationMethod
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,10 +13,12 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
 import com.leonm.voiceversa.databinding.FragmentSecondBinding
 import kotlinx.coroutines.runBlocking
+import kotlin.system.exitProcess
 
 
 /**
@@ -43,6 +46,7 @@ class SecondFragment : Fragment() {
         setupPasswordVisibilityToggle()
         setupApiKeyField()
         setupToggleSwitch()
+        setupDeleteButton()
 
         return binding.root
     }
@@ -102,6 +106,27 @@ class SecondFragment : Fragment() {
         toggleSwitch.isChecked = sharedPreferencesManager.loadData("TOGGLE_SWITCH", false)
         toggleSwitch.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferencesManager.saveData("TOGGLE_SWITCH", isChecked)
+        }
+    }
+
+    private fun setupDeleteButton() {
+        binding.button2.setOnClickListener {
+            val alert = AlertDialog.Builder(requireContext(), androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
+                .setTitle("Delete Transcriptions.")
+                .setCancelable(true)
+                .setMessage("Are you sure you want to delete ALL Transcriptions?")
+                .setPositiveButton(Html.fromHtml("<font color='#ff0000'>YES</font>", 0)) { dialog, _ ->
+                        JsonManager(requireContext()).deleteTranscriptions()
+                        Toast.makeText(context, "Deleted all Transcriptions", Toast.LENGTH_LONG).show()
+                        dialog.cancel()
+
+                }
+                .setNegativeButton(Html.fromHtml("<font color='#008000'>Exit</font>", 0)) { dialog, _ ->
+                    dialog.cancel()
+                }
+                .create()
+
+            alert.show()
         }
     }
 

@@ -123,11 +123,16 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     }
 
     private fun addSampleTranscription() {
-        saveTranscriptionToFile(
-            getString(R.string.lorem_ipsum),
-            "DAS IST DIE SUMMARY",
-            "DAS IST DIE TRANSLATION"
-        )
+        var counter = 0
+        while (counter != 100) {
+            saveTranscriptionToFile(
+                getString(R.string.lorem_ipsum),
+                "DAS IST DIE SUMMARY",
+                "DAS IST DIE TRANSLATION"
+            )
+            counter++
+        }
+
         reloadData()
     }
 
