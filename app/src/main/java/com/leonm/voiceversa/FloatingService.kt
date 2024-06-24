@@ -102,16 +102,13 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         when (command) {
             INTENT_COMMAND_TRANSCRIBE -> {
                 val path = intent?.getStringExtra("PATH") ?: ""
-                Log.d("FloatingService", "Transcribe command received with path: $path")
                 transcribeFile(path)
             }
             INTENT_COMMAND_DOWNLOAD -> {
                 downloadAndTranscribeFile(intent?.getStringExtra("PATH") ?: "")
-                Log.d("FloatingService", "Transcribe command received with TEST: ")
             }
             INTENT_COMMAND_EXIT -> {
                 stopService()
-                Log.d("FloatingService", "STTTTTTth:")
             }
         }
     }
@@ -161,6 +158,8 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         clearCacheDirectory()
         val ytdl = YoutubeDownloader()
 
+        window!!.loadingText.text = "Downloading file..."
+
         launch(Dispatchers.IO) {
             val downloadJob = async { ytdl.downloadAudio(ContextWrapper(applicationContext), path) }
             downloadJob.await()
@@ -179,6 +178,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
     private fun transcribeFile(tempfile: String) {
         Log.d("FloatingService", "Starting transcription for file: $tempfile")
 
+        window!!.loadingText.text = "Transcribing file..."
         launch(Dispatchers.IO) {
             try {
                 val audioFile = File(tempfile)
@@ -207,6 +207,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                 }
             } catch (e: Exception) {
                 Log.e("FloatingService", "Error during transcription", e)
+
             } finally {
                 clearCacheDirectory()
             }
