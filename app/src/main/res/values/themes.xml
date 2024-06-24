@@ -49,7 +49,7 @@
     </style>
 
     <style name="MyFab" parent="Widget.MaterialComponents.FloatingActionButton">
-        <item name="backgroundTint">@color/md_theme_light_primaryContainer</item>
+        <item name="backgroundTint">?attr/colorTertiaryContainer</item>
         <item name="tint">@color/md_theme_light_onPrimaryContainer</item>
     </style>
 

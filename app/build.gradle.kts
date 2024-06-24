@@ -82,7 +82,7 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-    implementation("com.aallam.openai:openai-client:3.6.3")
+    implementation("com.aallam.openai:openai-client:3.8.1")
     implementation("io.ktor:ktor-client-android:2.3.8")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.02.02"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
