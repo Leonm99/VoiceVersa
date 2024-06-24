@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.text.Html
 import android.util.Log
-import android.view.WindowManager
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.Toast
@@ -19,6 +18,7 @@ import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.arthenica.mobileffmpeg.FFmpeg
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -27,12 +27,9 @@ import okhttp3.Response
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import java.io.File
+import java.io.IOException
 import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
-
-import kotlinx.coroutines.delay
-
-import java.io.IOException
 
 
 class OpenAiHandler(private val context: Context) {
@@ -208,7 +205,6 @@ class OpenAiHandler(private val context: Context) {
 
     private fun getModel(): String {
         return sharedPreferencesManager.loadData<String>("MODEL_STRING", "gpt-3.5-turbo")
-            ?: "gpt-3.5-turbo"
     }
 }
 

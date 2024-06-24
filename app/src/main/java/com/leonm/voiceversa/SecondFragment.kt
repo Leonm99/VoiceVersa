@@ -5,20 +5,18 @@ package com.leonm.voiceversa
 import android.os.Bundle
 import android.text.Html
 import android.text.method.PasswordTransformationMethod
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
 import com.leonm.voiceversa.databinding.FragmentSecondBinding
 import kotlinx.coroutines.runBlocking
-import kotlin.system.exitProcess
 
 
 /**
@@ -102,7 +100,7 @@ class SecondFragment : Fragment() {
     }
 
     private fun setupToggleSwitch() {
-        val toggleSwitch = binding.switch1
+        val toggleSwitch: SwitchCompat = binding.switch1
         toggleSwitch.isChecked = sharedPreferencesManager.loadData("TOGGLE_SWITCH", false)
         toggleSwitch.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferencesManager.saveData("TOGGLE_SWITCH", isChecked)

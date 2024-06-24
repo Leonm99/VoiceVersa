@@ -3,6 +3,7 @@ package com.leonm.voiceversa
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -10,13 +11,11 @@ import android.content.res.Resources
 import android.graphics.PixelFormat
 import android.os.Build
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -25,7 +24,6 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -73,8 +71,8 @@ class Window(
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val layoutInflater: LayoutInflater =
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-    var wrapper = FrameLayout(context)
-    var rootView = layoutInflater.inflate(R.layout.window, wrapper)
+    private var wrapper = FrameLayout(context)
+    private var rootView: View = layoutInflater.inflate(R.layout.window, wrapper)!!!!
 
     private val windowParams =
         WindowManager.LayoutParams().apply {
@@ -236,7 +234,7 @@ class Window(
             loadingText.text = "Translating text..."
             launch(Dispatchers.IO) {
                 val openAiHandler = OpenAiHandler(context)
-                openAiHandler.initOpenAI() ?: return@launch
+                openAiHandler.initOpenAI()
                 translatedText = openAiHandler.translate(transcription)
 
 
@@ -355,6 +353,7 @@ class Window(
         metrics = Pair(screenWidth, screenHeight)
     }
 
+    @SuppressLint("DiscouragedApi", "InternalInsetResource")
     private fun getNavigationBarHeight(): Int {
         val resources = context.resources
         val resourceId: Int = resources.getIdentifier("navigation_bar_height", "dimen", "android")
