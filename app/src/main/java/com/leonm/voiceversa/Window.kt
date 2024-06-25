@@ -72,7 +72,7 @@ class Window(
     private val layoutInflater: LayoutInflater =
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
     private var wrapper = FrameLayout(context)
-    private var rootView: View = layoutInflater.inflate(R.layout.window, wrapper)!!!!
+    private var rootView: View = layoutInflater.inflate(R.layout.window, wrapper)!!
 
     private val windowParams =
         WindowManager.LayoutParams().apply {
@@ -287,6 +287,7 @@ class Window(
                 .setListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
                         floatingService.stopService()
+                        rootView.visibility = View.GONE
                         windowManager.removeView(rootView)
                     }
                 })
