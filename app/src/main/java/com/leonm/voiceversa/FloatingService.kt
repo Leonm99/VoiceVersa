@@ -14,6 +14,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -36,7 +37,8 @@ private val transcriptions = mutableListOf<Transcription>()
 private var summarizedContent: String = ""
 private var translatedContent: String = ""
 
-class FloatingService : Service(), CoroutineScope, WindowCallback {
+class FloatingService : Service(), CoroutineScope, WindowCallback{
+
 
     private val job = Job()
     private var window: Window? = null
@@ -89,6 +91,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
             launch(Dispatchers.IO) {
                 transcriptions.addAll(jsonManager.loadTranscriptions())
                 jsonManager.saveTranscriptions(transcriptions)
+                sendTranscriptionSavedBroadcast()
             }
             result = ""
         }
@@ -196,7 +199,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
                 val whisperResult = OpenAiHandler(this@FloatingService).whisper(convertedUri.path ?: return@launch)
 
                 inputLanguage = whisperResult
-                result = OpenAiHandler(this@FloatingService).correctSpelling(whisperResult)
+                result = whisperResult
                 filePath = convertedUri.path ?: return@launch
 
                 window?.enableButtons()
@@ -229,4 +232,10 @@ class FloatingService : Service(), CoroutineScope, WindowCallback {
         stopForeground(true)
         stopSelf()
     }
+
+    private fun sendTranscriptionSavedBroadcast() {
+        val intent = Intent("TRANSCRIPTION_SAVED")
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+    }
+
 }

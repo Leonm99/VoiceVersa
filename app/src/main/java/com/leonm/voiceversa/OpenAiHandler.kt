@@ -53,13 +53,14 @@ class OpenAiHandler(private val context: Context) {
     }
 
     suspend fun whisper(path: String): String {
-        println("\n>️ Create transcription...")
+        println("Create transcription...")
         val transcriptionRequest = TranscriptionRequest(
             audio = FileSource(path = path.toPath(), fileSystem = FileSystem.SYSTEM),
             model = ModelId("whisper-1")
         )
         val useCorrection = sharedPreferencesManager.loadData("TOGGLE_SWITCH", false)
         var result = openai?.transcription(transcriptionRequest)?.text.orEmpty()
+
         if (useCorrection) {
             result = correctSpelling(result)
         }

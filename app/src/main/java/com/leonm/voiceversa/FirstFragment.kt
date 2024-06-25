@@ -1,7 +1,10 @@
 package com.leonm.voiceversa
 
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,6 +16,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.leonm.voiceversa.databinding.FragmentFirstBinding
@@ -27,8 +31,10 @@ import java.io.IOException
  */
 
 
-
 class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
+    // Other code
+
+    // Other code {
 
     private var _binding: FragmentFirstBinding? = null
     private val binding get() = _binding!!
@@ -39,6 +45,14 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     private lateinit var recyclerView: RecyclerView
     private lateinit var mainActivity: MainActivity
     private lateinit var tAdapter: TranscriptionAdapter
+    private val transcriptionSavedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "TRANSCRIPTION_SAVED") {
+                reloadData()
+            }
+        }
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -61,7 +75,10 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
                 }
             }
         })
-
+        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(
+            transcriptionSavedReceiver,
+            IntentFilter("TRANSCRIPTION_SAVED")
+        )
         return binding.root
     }
 
@@ -69,10 +86,12 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupFabListeners()
+
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(transcriptionSavedReceiver)
         _binding = null
     }
 
@@ -87,6 +106,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     override fun onDeleteClick(transcription: Transcription) {
         deleteTranscription(transcription)
     }
+
+
 
     private fun setupRecyclerView() {
         loadTranscriptions()
@@ -179,18 +200,11 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         transcriptions.sortByDescending { it.timestamp }
     }
 
-    private suspend fun performWhisperTranscription(path: String?) {
-        try {
-            showLoading(true)
-            openAiHandler.initOpenAI()
-            val result = openAiHandler.whisper(path!!)
-            saveTranscriptionToFile(result, "", "")
-            recyclerView.adapter?.notifyDataSetChanged()
-        } catch (e: Exception) {
-            handleError(e)
-        } finally {
-            showLoading(false)
-        }
+    private fun performWhisperTranscription(path: String?) {
+
+
+        ServiceUtil.startFloatingService(requireContext(), "TRANSCRIBE", path!!)
+
     }
 
     private fun handleError(exception: Exception) {
@@ -243,4 +257,6 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     private fun showLoading(isLoading: Boolean) {
         binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
+
+
 }

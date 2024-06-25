@@ -30,7 +30,7 @@ class ReceiveIntentActivity : Activity() {
                         val audioFile = saveToCache(it)
                         audioFile?.let { file ->
                             Log.d("ReceiveIntentActivity", "Audio file path: ${file.absolutePath}")
-                            startFloatingService("TRANSCRIBE", file.absolutePath)
+                            ServiceUtil.startFloatingService(this,"TRANSCRIBE", file.absolutePath)
                         }
                     }
                 }
@@ -38,7 +38,7 @@ class ReceiveIntentActivity : Activity() {
                     val link = intent.extras?.getString(Intent.EXTRA_TEXT)
                     link?.let {
                         Log.d("ReceiveIntentActivity", "Text link: $it")
-                        startFloatingService("DOWNLOAD", it)
+                        ServiceUtil.startFloatingService(this,"DOWNLOAD", it)
                     }
                 }
             }
@@ -76,13 +76,6 @@ class ReceiveIntentActivity : Activity() {
         return android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: ""
     }
 
-    private fun startFloatingService(command: String, path: String) {
-        Log.d("ReceiveIntentActivity", "Starting service with command: $command and path: $path")
-        val intent = Intent(this, FloatingService::class.java).apply {
-            putExtra(INTENT_COMMAND, command)
-            putExtra("PATH", path)
-        }
-        startForegroundService(intent)
-    }
+
 
 }
