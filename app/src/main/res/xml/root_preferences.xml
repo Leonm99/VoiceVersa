@@ -11,21 +11,21 @@
             android:singleLine="true"
             android:title="OpenAI API key" />
         <ListPreference
-            android:defaultValue="1"
+            android:defaultValue="English"
             android:entries="@array/string_array_languages"
             android:entryValues="@array/string_array_languages"
             android:key="language_list_preference"
             android:title="Languages" />
         <ListPreference
-            android:defaultValue="1"
-            android:entries="@array/string_array_languages"
-            android:entryValues="@array/string_array_languages"
+            android:defaultValue="gpt-3.5-turbo"
+            android:entries="@array/string_array_models"
+            android:entryValues="@array/string_array_models"
             android:key="model_list_preference"
             android:title="Models" />
         <SwitchPreference
             android:defaultValue="false"
             android:key="switch_preference"
-            android:title="Switch preference" />
+            android:title="Text correction" />
     </PreferenceCategory>
 
 </PreferenceScreen>

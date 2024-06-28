@@ -22,10 +22,15 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        setPreferencesFromResource(R.xml.root_preferences, rootKey)
 
         val preferenceManager: PreferenceManager = this.preferenceManager
         preferenceManager.preferenceDataStore = SharedPreferencesManager(requireContext())
+
+        setPreferencesFromResource(R.xml.root_preferences, rootKey)
+
+
+
+
 
         val apiKeyPreference: EditTextPreference? = findPreference("api_key_preference")
         val languagePreference: ListPreference? = findPreference("language_list_preference")
@@ -44,17 +49,18 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
         languagePreference?.summaryProvider =
             Preference.SummaryProvider<ListPreference> { preference ->
-               "Selected Language: ${preference.value}"
+                "Language for Translations: ${preference.value}"
             }
 
         modelPreference?.summaryProvider =
             Preference.SummaryProvider<ListPreference> { preference ->
-                "Selected Model: ${preference.value}"
+                "Model for Summarization: ${preference.value}"
             }
 
-
-
-
+        switchPreference?.summaryProvider =
+            Preference.SummaryProvider<SwitchPreference> { preference ->
+                "Text Correction: ${preference.isChecked}"
+            }
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {

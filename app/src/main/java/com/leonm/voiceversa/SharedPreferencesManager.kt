@@ -23,28 +23,28 @@ class SharedPreferencesManager(context: Context): PreferenceDataStore() {
     )
 
 
-
-
-
-     val gson: Gson by lazy { Gson() }
-
-    fun <T> saveData(key: String, data: T) {
-        val json = gson.toJson(data)
-        sharedPreferences.edit().putString(key, json).apply()
-    }
-
-    inline fun <reified T> loadData(key: String, defaultValue: T): T {
-        val json = sharedPreferences.getString(key, null)
-        return json?.let {
-            gson.fromJson(it, T::class.java)
-        } ?: defaultValue
-    }
-
     override fun putString(key: String, value: String?) {
-        saveData(key, value)
+        sharedPreferences.edit().putString(key, value).apply()
     }
 
     override fun getString(key: String, defValue: String?): String? {
-        return loadData(key, defValue)
+        return sharedPreferences.getString(key, defValue)
+    }
+
+
+    override fun putInt(key: String, value: Int) {
+        sharedPreferences.edit().putInt(key, value).apply()
+    }
+
+    override fun getInt(key: String, defValue: Int): Int {
+        return sharedPreferences.getInt(key, defValue)
+    }
+
+    override fun putBoolean(key: String, value: Boolean) {
+        sharedPreferences.edit().putBoolean(key, value).apply()
+    }
+
+    override fun getBoolean(key: String, defValue: Boolean): Boolean {
+        return sharedPreferences.getBoolean(key, defValue)
     }
 }

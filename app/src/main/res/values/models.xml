@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array
+        name="string_array_models">
+        <item>gpt-4o</item>
+        <item>gpt-4-turbo</item>
+        <item>gpt-4</item>
+        <item>gpt-3.5-turbo</item>
+    </string-array>
+</resources>

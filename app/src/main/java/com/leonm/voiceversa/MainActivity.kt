@@ -42,15 +42,14 @@ class MainActivity : AppCompatActivity() {
         sharedPreferencesManager = SharedPreferencesManager(this)
 
         lifecycleScope.launch {
-            val apiKey = sharedPreferencesManager.loadData("api_key_preference", "")
-            val isValid = openAiHandler.checkApiKey(apiKey)
+            val apiKey = sharedPreferencesManager.getString("api_key_preference", "")
+            val isValid = openAiHandler.checkApiKey(apiKey!!)
 
             if (!isValid) {
-                sharedPreferencesManager.saveData("isApiKeyValid", false)
+                sharedPreferencesManager.putBoolean("isApiKeyValid", false)
                 openAiHandler.alertApiKey()
-            } else {
-                sharedPreferencesManager.saveData("isApiKeyValid", true)
-                openAiHandler.getAvailableModels()
+            }else {
+                sharedPreferencesManager.putBoolean("isApiKeyValid", true)
             }
         }
 

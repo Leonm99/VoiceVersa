@@ -60,7 +60,7 @@ class FloatingService : Service(), CoroutineScope, WindowCallback{
         val command = intent?.getStringExtra(INTENT_COMMAND)
 
         val isApiKeyValid = SharedPreferencesManager(applicationContext)
-            .loadData("isApiKeyValid", "false").toBoolean()
+            .getBoolean("isApiKeyValid", false)
 
         if (!isApiKeyValid) {
             window?.apply {
