@@ -56,29 +56,29 @@ class SecondFragment : Fragment() {
         val autoCompleteTextView = binding.autocompleteText
         autoCompleteTextView.setAdapter(languagesAdapter)
 
-        savedSelection = sharedPreferencesManager.loadData("LANGUAGE", "0").toInt()
+        savedSelection = sharedPreferencesManager.loadData("language_list_preference", "0").toInt()
         autoCompleteTextView.setText(resources.getStringArray(R.array.string_array_languages)[savedSelection], false)
 
         autoCompleteTextView.onItemClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
-            sharedPreferencesManager.saveData("LANGUAGE", position)
-            sharedPreferencesManager.saveData("LANGUAGE_STRING", parent.getItemAtPosition(position).toString())
+            sharedPreferencesManager.saveData("language_list_preference", position)
+            sharedPreferencesManager.saveData("language_list_preference_STRING", parent.getItemAtPosition(position).toString())
             savedSelection = position
             Toast.makeText(requireContext(), "Selected: ${parent.getItemAtPosition(position)}", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun setupModelDropdown() {
-        val items = sharedPreferencesManager.loadData("MODEL_IDS", listOf(""))
+        val items = sharedPreferencesManager.loadData("model_list_preference", listOf(""))
         val modelsAdapter = ArrayAdapter(requireContext(), R.layout.dropdown_item, items)
         val autoCompleteTextView = binding.autocompleteText2
         autoCompleteTextView.setAdapter(modelsAdapter)
 
-        savedModelSelection = sharedPreferencesManager.loadData("SELECTED_MODEL", "0").toInt()
+        savedModelSelection = sharedPreferencesManager.loadData("model_list_preference", "0").toInt()
         autoCompleteTextView.setText(items[savedModelSelection], false)
 
         autoCompleteTextView.onItemClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
-            sharedPreferencesManager.saveData("SELECTED_MODEL", position)
-            sharedPreferencesManager.saveData("MODEL_STRING", parent.getItemAtPosition(position).toString())
+            sharedPreferencesManager.saveData("model_list_preference", position)
+            sharedPreferencesManager.saveData("model_list_preference", parent.getItemAtPosition(position).toString())
             savedModelSelection = position
             Toast.makeText(requireContext(), "Selected: ${parent.getItemAtPosition(position)}", Toast.LENGTH_SHORT).show()
         }
@@ -90,7 +90,7 @@ class SecondFragment : Fragment() {
     }
 
     private fun setupApiKeyField() {
-        binding.editTextTextPassword.setText(sharedPreferencesManager.loadData("API_KEY", ""))
+        binding.editTextTextPassword.setText(sharedPreferencesManager.loadData("api_key_preference", ""))
         binding.editTextTextPassword.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val text = binding.editTextTextPassword.text.toString()
@@ -101,9 +101,9 @@ class SecondFragment : Fragment() {
 
     private fun setupToggleSwitch() {
         val toggleSwitch: SwitchCompat = binding.switch1
-        toggleSwitch.isChecked = sharedPreferencesManager.loadData("TOGGLE_SWITCH", false)
+        toggleSwitch.isChecked = sharedPreferencesManager.loadData("switch_preference", false)
         toggleSwitch.setOnCheckedChangeListener { _, isChecked ->
-            sharedPreferencesManager.saveData("TOGGLE_SWITCH", isChecked)
+            sharedPreferencesManager.saveData("switch_preference", isChecked)
         }
     }
 
@@ -134,7 +134,7 @@ class SecondFragment : Fragment() {
             if (!openAiHandler.checkApiKey(text)) {
                 Toast.makeText(context, "API key not valid!", Toast.LENGTH_SHORT).show()
             } else {
-                sharedPreferencesManager.saveData("API_KEY", text)
+                sharedPreferencesManager.saveData("api_key_preference", text)
                 Toast.makeText(context, "API key is valid!", Toast.LENGTH_SHORT).show()
                 refreshModelDropdown()
             }
@@ -142,12 +142,12 @@ class SecondFragment : Fragment() {
     }
 
     private fun refreshModelDropdown() {
-        val items = sharedPreferencesManager.loadData("MODEL_IDS", listOf(""))
+        val items = sharedPreferencesManager.loadData("model_list_preference", listOf(""))
         val modelsAdapter = ArrayAdapter(requireContext(), R.layout.dropdown_item, items)
         val autoCompleteTextView = binding.autocompleteText2
         autoCompleteTextView.setAdapter(modelsAdapter)
 
-        savedModelSelection = sharedPreferencesManager.loadData("SELECTED_MODEL", "0").toInt()
+        savedModelSelection = sharedPreferencesManager.loadData("model_list_preference", "0").toInt()
         autoCompleteTextView.setText(items[savedModelSelection], false)
     }
 

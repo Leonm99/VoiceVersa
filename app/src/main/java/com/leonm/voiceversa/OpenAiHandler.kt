@@ -45,7 +45,7 @@ class OpenAiHandler(private val context: Context) {
     }
 
    fun initOpenAI() {
-        val key = sharedPreferencesManager.loadData<String>("API_KEY", "Default Value")
+        val key = sharedPreferencesManager.loadData<String>("api_key_preference", "Default Value")
         openai = OpenAI(
             token = key,
             timeout = Timeout(socket = 120.seconds)
@@ -58,7 +58,7 @@ class OpenAiHandler(private val context: Context) {
             audio = FileSource(path = path.toPath(), fileSystem = FileSystem.SYSTEM),
             model = ModelId("whisper-1")
         )
-        val useCorrection = sharedPreferencesManager.loadData("TOGGLE_SWITCH", false)
+        val useCorrection = sharedPreferencesManager.loadData("switch_preference", false)
         var result = openai?.transcription(transcriptionRequest)?.text.orEmpty()
 
         if (useCorrection) {
@@ -87,7 +87,7 @@ class OpenAiHandler(private val context: Context) {
 
     suspend fun translate(userText: String): String {
         val model = getModel()
-        language = sharedPreferencesManager.loadData("LANGUAGE_STRING", "English").uppercase()
+        language = sharedPreferencesManager.loadData("language_list_preference_STRING", "English").uppercase()
         val chatCompletionRequest = ChatCompletionRequest(
             model = ModelId(model),
             messages = listOf(
@@ -138,8 +138,8 @@ class OpenAiHandler(private val context: Context) {
         val regex = Regex("id=ModelId\\(id=(.*?)\\)")
         val modelIds = regex.findAll(models.toString()).map { it.groupValues[1] }.toList()
         val gptModels = modelIds.filter { it.contains("gpt") }
-        sharedPreferencesManager.saveData("MODEL_IDS", gptModels)
-        Log.d("MODEL_IDS", modelIds.toString())
+        sharedPreferencesManager.saveData("model_list_preference", gptModels)
+        Log.d("model_list_preference", modelIds.toString())
         return gptModels
     }
 
@@ -185,7 +185,7 @@ class OpenAiHandler(private val context: Context) {
                 var isKeyValid = false
                 runBlocking { isKeyValid = checkApiKey(input.text.toString()) }
                 if (isKeyValid) {
-                    sharedPreferencesManager.saveData("API_KEY", input.text.toString())
+                    sharedPreferencesManager.saveData("api_key_preference", input.text.toString())
                     Toast.makeText(context, "API key is valid", Toast.LENGTH_LONG).show()
                     dialog.cancel()
                 } else {
@@ -205,7 +205,7 @@ class OpenAiHandler(private val context: Context) {
 
 
     private fun getModel(): String {
-        return sharedPreferencesManager.loadData<String>("MODEL_STRING", "gpt-3.5-turbo")
+        return sharedPreferencesManager.loadData<String>("model_list_preference", "gpt-3.5-turbo")
     }
 }
 

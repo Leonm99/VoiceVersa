@@ -76,6 +76,7 @@ dependencies {
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha06")
+    implementation("androidx.preference:preference:1.2.1")
 
 
     testImplementation("junit:junit:4.13.2")

@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
         sharedPreferencesManager = SharedPreferencesManager(this)
 
         lifecycleScope.launch {
-            val apiKey = sharedPreferencesManager.loadData("API_KEY", "")
+            val apiKey = sharedPreferencesManager.loadData("api_key_preference", "")
             val isValid = openAiHandler.checkApiKey(apiKey)
 
             if (!isValid) {
@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.SecondFragment -> {
+            R.id.SettingsFragment -> {
                 NavigationUI.onNavDestinationSelected(
                     item,
                     findNavController(R.id.nav_host_fragment_content_main),

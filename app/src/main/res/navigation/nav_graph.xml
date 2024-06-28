@@ -13,14 +13,13 @@
 
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment"
+            app:destination="@id/SettingsFragment"
             app:enterAnim="@android:anim/slide_in_left" />
     </fragment>
     <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.leonm.voiceversa.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
+        android:id="@+id/SettingsFragment"
+        android:name="com.leonm.voiceversa.SettingsFragment"
+        android:label="@string/second_fragment_label">
 
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"

@@ -2,12 +2,13 @@ package com.leonm.voiceversa
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.preference.PreferenceDataStore
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
 
 
-class SharedPreferencesManager(context: Context) {
+class SharedPreferencesManager(context: Context): PreferenceDataStore() {
 
     private var masterKey: MasterKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -37,5 +38,13 @@ class SharedPreferencesManager(context: Context) {
         return json?.let {
             gson.fromJson(it, T::class.java)
         } ?: defaultValue
+    }
+
+    override fun putString(key: String, value: String?) {
+        saveData(key, value)
+    }
+
+    override fun getString(key: String, defValue: String?): String? {
+        return loadData(key, defValue)
     }
 }
