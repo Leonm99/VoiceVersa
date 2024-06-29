@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".SettingsFragment">
 
-    <PreferenceCategory app:title="@string/messages_header">
+    <PreferenceCategory app:title="Settings">
         <EditTextPreference
             android:defaultValue="Default value"
             android:key="api_key_preference"

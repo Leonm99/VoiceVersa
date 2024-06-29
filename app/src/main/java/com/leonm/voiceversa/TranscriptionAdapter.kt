@@ -1,6 +1,9 @@
 package com.leonm.voiceversa
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +11,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import java.text.SimpleDateFormat
 import java.util.*
@@ -69,6 +73,7 @@ class TranscriptionAdapter(
 
         private val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
         private val translationButton: Button = itemView.findViewById(R.id.translationButton)
+        private val copyButton: Button = itemView.findViewById(R.id.copyButton)
         private val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
         private val buttonHolder: LinearLayout = itemView.findViewById(R.id.button_holder)
@@ -154,7 +159,16 @@ class TranscriptionAdapter(
                 }
             }
 
-            buttonHolder.visibility = if (summaryAvailable || translationAvailable) View.VISIBLE else View.GONE
+            copyButton.apply {
+                setOnClickListener {
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("text",  transcription.content)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(context, "Copied to Clipboard.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+
         }
     }
 

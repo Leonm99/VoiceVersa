@@ -36,11 +36,11 @@
     <color name="md_theme_light_scrim">#000000</color> <!-- Black -->
 
     <!-- Dark theme -->
-    <color name="md_theme_dark_primary">#075e54</color> <!-- WhatsApp green -->
+    <color name="md_theme_dark_primary">#4CAF50</color> <!-- WhatsApp green -->
     <color name="md_theme_dark_onPrimary">#FFFFFF</color> <!-- White -->
     <color name="md_theme_dark_primaryContainer">#144c36</color> <!-- WhatsApp green -->
     <color name="md_theme_dark_onPrimaryContainer">#e8edee</color> <!-- Black -->
-    <color name="md_theme_dark_secondary">#128C7E</color> <!-- Darker green -->
+    <color name="md_theme_dark_secondary">#4CAF50</color> <!-- Darker green -->
     <color name="md_theme_dark_onSecondary">#FFFFFF</color> <!-- White -->
     <color name="md_theme_dark_secondaryContainer">#2C2F33</color> <!-- Dark gray -->
     <color name="md_theme_dark_onSecondaryContainer">#FFFFFF</color> <!-- White -->

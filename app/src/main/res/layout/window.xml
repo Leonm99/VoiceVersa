@@ -5,12 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="bottom"
-    android:layout_marginBottom="0dp"
     android:animateLayoutChanges="true"
     android:background="@android:color/transparent"
-    android:clickable="false"
-    android:focusable="false"
-    android:focusableInTouchMode="false"
+
     android:orientation="vertical"
     android:visibility="visible">
 
@@ -22,11 +19,10 @@
         <com.google.android.material.card.MaterialCardView
             style="@style/MyCardView"
             android:layout_width="match_parent"
-            android:layout_height="33dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:elevation="0dp"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
+
 
             android:minHeight="50dp"
             android:theme="@style/AppTheme"
@@ -44,10 +40,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginTop="10dp"
             android:elevation="1dp"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
+
             android:minHeight="220dp"
             android:theme="@style/AppTheme"
             app:cardCornerRadius="15dp"
@@ -58,8 +52,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
+
                 android:orientation="vertical">
 
                 <View
@@ -89,12 +82,12 @@
                 <FrameLayout
                     android:id="@+id/contentContainer"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="match_parent"
                     android:layout_marginHorizontal="13dp"
                     android:layout_marginBottom="10dp"
                     android:layout_weight="1"
-                    android:focusable="false"
-                    android:focusableInTouchMode="false"
+                    android:focusable="auto"
+                    android:focusableInTouchMode="true"
                     android:minHeight="50dp">
 
                     <TextView
@@ -129,12 +122,15 @@
 
                     <ScrollView
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="match_parent"
+                        android:focusable="auto"
+                        android:focusableInTouchMode="true"
+                        android:isScrollContainer="true"
+                        android:scrollbars="vertical">
 
-                        <LinearLayout
+                        <FrameLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:layout_height="wrap_content">
 
                             <TextView
                                 android:id="@+id/result_text"
@@ -142,13 +138,14 @@
                                 android:layout_height="wrap_content"
                                 android:breakStrategy="high_quality"
                                 android:fontFamily="@font/roboto"
+                                android:isScrollContainer="true"
                                 android:lineSpacingExtra="1.8dp"
                                 android:lineSpacingMultiplier="1"
-                                android:maxHeight="500dp"
                                 android:padding="5dp"
+                                android:scrollbars="vertical"
                                 android:textAlignment="viewStart"
                                 android:textColor="?attr/colorOnSecondaryContainer" />
-                        </LinearLayout>
+                        </FrameLayout>
                     </ScrollView>
 
                     <!-- android:shadowColor="#20000000"

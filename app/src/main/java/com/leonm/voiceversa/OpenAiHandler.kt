@@ -112,7 +112,7 @@ class OpenAiHandler(private val context: Context) {
             messages = listOf(
                 ChatMessage(
                     role = ChatRole.System,
-                    content = "Your task is to correct any spelling discrepancies in the transcribed text. Make the text look more presentable Add necessary punctuation such as periods, commas, capitalization, paragraphs and use only the context provided. Use the same language the text is written in."
+                    content = "Your task is to correct any spelling discrepancies in the transcribed text. Make the text look more presentable Add necessary punctuation such as periods, commas, capitalization, paragraphs, line breaks and use only the context provided. Use the same language the text is written in."
                 ),
                 ChatMessage(
                     role = ChatRole.User,

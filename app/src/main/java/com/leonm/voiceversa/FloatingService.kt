@@ -155,21 +155,21 @@ class FloatingService : Service(), CoroutineScope, WindowCallback{
         }
     }
 
-    private fun downloadAndTranscribeFile(path: String) {
+    private fun downloadAndTranscribeFile(link: String) {
         clearCacheDirectory()
         val ytdl = YoutubeDownloader()
 
         window!!.loadingText.text = "Downloading file..."
 
         launch(Dispatchers.IO) {
-            val downloadJob = async { ytdl.downloadAudio(ContextWrapper(applicationContext), path) }
+            val downloadJob = async { ytdl.downloadAudio(ContextWrapper(applicationContext), link) }
             downloadJob.await()
 
             withContext(Dispatchers.Main) {
                 transcribeFile(File(ContextWrapper(applicationContext).cacheDir, "test.mp3").absolutePath)
                 window?.apply {
                     disableButtons()
-                    updateTextViewWithSlightlyUnevenTypingEffect("Downloading file...")
+
 
                 }
             }
@@ -202,8 +202,9 @@ class FloatingService : Service(), CoroutineScope, WindowCallback{
                 result = whisperResult
                 filePath = convertedUri.path ?: return@launch
 
-                window?.enableButtons()
+
                 withContext(Dispatchers.Main) {
+                    window?.enableButtons()
                     window?.updateTextViewWithSlightlyUnevenTypingEffect(result)
                 }
             } catch (e: Exception) {
