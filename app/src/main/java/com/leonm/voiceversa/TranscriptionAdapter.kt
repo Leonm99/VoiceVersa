@@ -1,9 +1,13 @@
 package com.leonm.voiceversa
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,20 +37,21 @@ data class Transcription(
 }
 
 class TranscriptionAdapter(
-    private val transcriptions: MutableList<Transcription>,
+    private val transcriptions: MutableList<Transcription>
 ) : RecyclerView.Adapter<TranscriptionAdapter.TranscriptionViewHolder>() {
+
+
+
 
     private val selectedItems = mutableSetOf<Int>()
     var isInSelectionMode = false
     var onSelectionModeChangeListener: ((Boolean) -> Unit)? = null
-
     interface OnDeleteClickListener {
         fun onDeleteClick(transcription: Transcription)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TranscriptionViewHolder {
-        val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.item_transcription, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_transcription, parent, false)
         return TranscriptionViewHolder(view)
     }
 
@@ -74,23 +79,15 @@ class TranscriptionAdapter(
         private val summarizeButton: Button = itemView.findViewById(R.id.summarizeButton)
         private val translationButton: Button = itemView.findViewById(R.id.translationButton)
         private val copyButton: Button = itemView.findViewById(R.id.copyButton)
+        private val expandButton: Button = itemView.findViewById(R.id.expand_button)
         private val textTranscriptionContent: TextView = itemView.findViewById(R.id.textTranscriptionContent)
         private val textTranscriptionDate: TextView = itemView.findViewById(R.id.textTranscriptionDate)
-        private val buttonHolder: LinearLayout = itemView.findViewById(R.id.button_holder)
         private val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
 
         init {
-            itemView.setOnClickListener {
-                toggleExpanded()
-            }
-
             itemView.setOnLongClickListener {
                 toggleSelectionMode()
-                true // consume the long click
-            }
-
-            textTranscriptionContent.setOnClickListener {
-                toggleExpanded()
+                true
             }
 
             textTranscriptionContent.setOnLongClickListener {
@@ -100,6 +97,31 @@ class TranscriptionAdapter(
 
             checkBox.setOnClickListener {
                 toggleSelection(adapterPosition)
+            }
+
+            expandButton.setOnClickListener {
+                toggleExpanded()
+            }
+
+            copyButton.setOnClickListener {
+                val clipboard = itemView.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("text", transcriptions[adapterPosition].content)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(itemView.context, "Copied to Clipboard.", Toast.LENGTH_SHORT).show()
+            }
+
+            summarizeButton.setOnClickListener {
+                val transcription = transcriptions[adapterPosition]
+                if (transcription.summarizedContent.isNotEmpty()) {
+                    textTranscriptionContent.text = transcription.summarizedContent
+                }
+            }
+
+            translationButton.setOnClickListener {
+                val transcription = transcriptions[adapterPosition]
+                if (transcription.translatedContent.isNotEmpty()) {
+                    textTranscriptionContent.text = transcription.translatedContent
+                }
             }
         }
 
@@ -112,63 +134,67 @@ class TranscriptionAdapter(
             notifyDataSetChanged()
         }
 
-        @SuppressLint("SetTextI18n")
         private fun toggleExpanded() {
             val transcription = transcriptions[adapterPosition]
-            with(textTranscriptionContent) {
-                if (maxHeight == SPECIFIED_HEIGHT) {
-                    text = transcription.content
-                    maxHeight = Int.MAX_VALUE
-                    layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                } else {
-                    text = transcription.content.take(SPECIFIED_HEIGHT) + "..."
-                    maxHeight = SPECIFIED_HEIGHT
-                }
+
+            with(textTranscriptionContent){
+            val startHeight = height
+            val endHeight: Int
+
+            if (!transcription.expanded) {
+                text = transcription.content
+                maxHeight = Int.MAX_VALUE
+                measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+                endHeight = measuredHeight + 200
+                Log.i("TAG", "measuredHeight: ${measuredHeight}")
+            } else {
+                maxHeight = SPECIFIED_HEIGHT
+                endHeight = SPECIFIED_HEIGHT
             }
+
+                val valueAnimator = ValueAnimator.ofInt(startHeight, endHeight).apply {
+                    duration = 200
+                    addUpdateListener { animation ->
+                        layoutParams.height = animation.animatedValue as Int
+                        requestLayout()
+                    }
+                }
+
+                valueAnimator.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                        requestLayout()
+                    }
+                })
+
+                valueAnimator.start()
+
+            }
+
+
+            transcription.expanded = !transcription.expanded
+            expandButton.animate().rotationBy(180f).setDuration(200).start()
         }
 
         @SuppressLint("SetTextI18n")
         fun bind(transcription: Transcription) {
             textTranscriptionDate.text = transcription.formattedDateTime
-            textTranscriptionContent.text = transcription.content.take(SPECIFIED_HEIGHT) + "..."
-            textTranscriptionContent.maxHeight = SPECIFIED_HEIGHT
+            textTranscriptionContent.apply {
+                text = transcription.content
+                layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                maxHeight = if (transcription.content.length > 100) SPECIFIED_HEIGHT else Int.MAX_VALUE
+            }
 
             checkBox.visibility = if (isInSelectionMode) View.VISIBLE else View.GONE
             checkBox.isChecked = selectedItems.contains(adapterPosition)
 
-            val summaryAvailable = transcription.summarizedContent.isNotEmpty()
-            val translationAvailable = transcription.translatedContent.isNotEmpty()
+            expandButton.visibility = if (transcription.content.length > 100 && !isInSelectionMode) View.VISIBLE else View.GONE
 
-            summarizeButton.apply {
-                isClickable = summaryAvailable
-                visibility = if (summaryAvailable) View.VISIBLE else View.GONE
-                setOnClickListener {
-                    if (summaryAvailable) {
-                        textTranscriptionContent.text = transcription.summarizedContent
-                    }
-                }
-            }
+            summarizeButton.visibility = if (transcription.summarizedContent.isNotEmpty()) View.VISIBLE else View.GONE
+            summarizeButton.isClickable = transcription.summarizedContent.isNotEmpty()
 
-            translationButton.apply {
-                isClickable = translationAvailable
-                visibility = if (translationAvailable) View.VISIBLE else View.GONE
-                setOnClickListener {
-                    if (translationAvailable) {
-                        textTranscriptionContent.text = transcription.translatedContent
-                    }
-                }
-            }
-
-            copyButton.apply {
-                setOnClickListener {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = ClipData.newPlainText("text",  transcription.content)
-                    clipboard.setPrimaryClip(clip)
-                    Toast.makeText(context, "Copied to Clipboard.", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-
+            translationButton.visibility = if (transcription.translatedContent.isNotEmpty()) View.VISIBLE else View.GONE
+            translationButton.isClickable = transcription.translatedContent.isNotEmpty()
         }
     }
 

@@ -25,9 +25,24 @@
         android:visibility="gone"
         tools:visibility="gone" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/expand_button"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="end"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:visibility="visible"
+        app:icon="@drawable/arrow_down"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconTint="?attr/colorOnPrimaryContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:isScrollContainer="false"
         android:scrollbars="none"
         android:orientation="vertical"
@@ -35,7 +50,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:isScrollContainer="false"
             android:orientation="vertical"
             android:scrollbars="none">
@@ -78,7 +93,6 @@
                     android:isScrollContainer="false"
                     android:lineSpacingExtra="1.8dp"
                     android:lineSpacingMultiplier="1"
-                    android:maxLines="3"
                     android:nestedScrollingEnabled="false"
                     android:padding="5dp"
                     android:scrollbars="none"
@@ -148,6 +162,9 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         </LinearLayout>
+
+
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

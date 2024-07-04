@@ -130,12 +130,7 @@ class MainActivity : AppCompatActivity() {
                 permissions.add(permission.POST_NOTIFICATIONS)
             }
 
-            if (ContextCompat.checkSelfPermission(this, permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                permissions.add(permission.WRITE_EXTERNAL_STORAGE)
-            }
-            if (ContextCompat.checkSelfPermission(this, permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                permissions.add(permission.READ_EXTERNAL_STORAGE)
-            }
+
         }
 
         if (permissions.isNotEmpty()) {

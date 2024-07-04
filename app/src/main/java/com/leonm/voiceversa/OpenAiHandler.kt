@@ -136,22 +136,34 @@ class OpenAiHandler(private val context: Context) {
 
 
     suspend fun checkApiKey(apiKey: String): Boolean {
-        val request = Request.Builder()
-            .url("https://api.openai.com/v1/engines")
-            .header("Authorization", "Bearer $apiKey")
-            .build()
+        return withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("https://api.openai.com/v1/engines")
+                .header("Authorization", "Bearer $apiKey")
+                .build()
 
-        repeat(MAX_RETRIES) { attempt ->
-            try {
-                val response: Response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
-                val isApiKeyValid = apiKey.length == 51 && response.isSuccessful
-                if (isApiKeyValid) return true
-                if (response.code in 500..599) delay(RETRY_DELAY_MS) else return false
-            } catch (e: IOException) {
-                if (attempt < MAX_RETRIES - 1) delay(RETRY_DELAY_MS) else return false
+            repeat(MAX_RETRIES) { attempt ->
+                try {
+                    val response: Response = client.newCall(request).execute()
+                    val isApiKeyValid = apiKey.length == 51 && response.isSuccessful
+                    if (isApiKeyValid){
+                        response.close()
+                        return@withContext true
+                    }
+
+                    if (response.code in 500..599) delay(RETRY_DELAY_MS)
+                    else{
+                        response.close()
+                        return@withContext false
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    delay(RETRY_DELAY_MS)
+                }
             }
+
+            false
         }
-        return false
     }
 
     fun alertApiKey() {
