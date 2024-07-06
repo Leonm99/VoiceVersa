@@ -19,7 +19,7 @@
         android:fontFamily="@font/roboto"
         android:text="No Transcription saved.. 😢"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textColor="?attr/colorSurfaceInverse"/>
+        android:textColor="?attr/colorSurfaceInverse" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -33,15 +33,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="@style/MyProgressBar"
-            android:layout_width="119dp"
-            android:layout_height="123dp"
-            android:layout_centerInParent="true"
-            android:visibility="invisible" />
-
     </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="86dp"
+        android:layout_height="86dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="70dp"
+        android:src="@drawable/arrow_down"
+        app:tint="?attr/colorTertiaryContainer" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"

@@ -1,5 +1,7 @@
 package com.leonm.voiceversa
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -81,6 +83,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
             transcriptionSavedReceiver,
             IntentFilter("TRANSCRIPTION_SAVED")
         )
+
+
         return binding.root
     }
 
@@ -88,6 +92,10 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupFabListeners()
+        if (binding.imageView.visibility == View.VISIBLE) {
+            animateArrow()
+        }
+
 
     }
 
@@ -102,6 +110,9 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         reloadData()
         if (tAdapter.isInSelectionMode) {
             tAdapter.toggleSelectionMode()
+        }
+        if (binding.imageView.visibility == View.VISIBLE) {
+            animateArrow()
         }
     }
 
@@ -165,7 +176,8 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
             jsonManager.saveTranscriptions(transcriptions)
             if (transcriptions.isNotEmpty()) {
                 binding.infoText.visibility = View.GONE
-                Log.i("FirstFragment", transcriptions[0].content)
+                binding.imageView.visibility = View.GONE
+
             }
         }
     }
@@ -185,8 +197,10 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
 
             if (transcriptions.isNotEmpty()) {
                 binding.infoText.visibility = View.GONE
+                binding.imageView.visibility = View.GONE
             }else {
                 binding.infoText.visibility = View.VISIBLE
+                binding.imageView.visibility = View.VISIBLE
             }
         } catch (e: Exception) {
             handleError(e)
@@ -206,8 +220,10 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         recyclerView.adapter?.notifyDataSetChanged()
         if (transcriptions.isNotEmpty()) {
             binding.infoText.visibility = View.GONE
+            binding.imageView.visibility = View.GONE
         }else {
             binding.infoText.visibility = View.VISIBLE
+            binding.imageView.visibility = View.VISIBLE
         }
 
     }
@@ -271,6 +287,14 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     private fun getFileExtension(uri: Uri): String {
         val mimeTypeMap = MimeTypeMap.getSingleton()
         return ".${mimeTypeMap.getExtensionFromMimeType(requireContext().contentResolver.getType(uri))}"
+    }
+
+    private fun animateArrow() {
+        val animator = ObjectAnimator.ofFloat(binding.imageView, "translationY", -50f, 50f)
+        animator.repeatCount = ValueAnimator.INFINITE
+        animator.repeatMode = ValueAnimator.REVERSE
+        animator.duration = 1000
+        animator.start()
     }
 
 

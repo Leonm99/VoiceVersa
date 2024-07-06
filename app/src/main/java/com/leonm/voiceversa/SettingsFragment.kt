@@ -29,7 +29,14 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         setPreferencesFromResource(R.xml.root_preferences, rootKey)
 
 
-
+        val button = preferenceManager.findPreference<Preference>("toastMsg")
+        button?.setOnPreferenceClickListener {
+            Toast.makeText(
+                activity, "Preference button is clicked",
+                Toast.LENGTH_SHORT
+            ).show()
+            true
+        }
 
 
         val apiKeyPreference: EditTextPreference? = findPreference("api_key_preference")
