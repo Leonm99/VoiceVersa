@@ -1,9 +1,12 @@
 package com.leonm.voiceversa
 
+
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.Html
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
@@ -31,10 +34,23 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
         val button = preferenceManager.findPreference<Preference>("toastMsg")
         button?.setOnPreferenceClickListener {
-            Toast.makeText(
-                activity, "Preference button is clicked",
-                Toast.LENGTH_SHORT
-            ).show()
+            val alert = AlertDialog.Builder(requireContext(), androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
+                .setTitle("Delete Transcriptions.")
+                .setCancelable(true)
+                .setMessage("Are you sure you want to delete ALL Transcriptions?")
+                .setPositiveButton(Html.fromHtml("<font color='#ff0000'>YES</font>", 0)) { dialog, _ ->
+                    JsonManager(requireContext()).deleteTranscriptions()
+                    Toast.makeText(context, "Deleted all Transcriptions", Toast.LENGTH_LONG).show()
+                    dialog.cancel()
+
+                }
+                .setNegativeButton(Html.fromHtml("<font color='#008000'>Exit</font>", 0)) { dialog, _ ->
+                    dialog.cancel()
+                }
+                .create()
+
+            alert.show()
+
             true
         }
 

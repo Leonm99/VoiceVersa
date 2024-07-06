@@ -28,7 +28,7 @@
             android:title="Text correction" />
         <Preference
             app:key="toastMsg"
-            app:title="DELETION TEST BUTTON" />
+            app:title="Delete all Transcriptions." />
     </PreferenceCategory>
 
 </PreferenceScreen>

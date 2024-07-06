@@ -26,8 +26,6 @@
         android:layout_height="match_parent"
         android:textAlignment="center">
 
-        <!-- Your other views here -->
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
@@ -37,10 +35,12 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="86dp"
-        android:layout_height="86dp"
+        android:layout_width="87dp"
+        android:layout_height="87dp"
         android:layout_gravity="bottom|end"
         android:layout_marginBottom="70dp"
+        android:scaleX="0.8"
+        android:scaleY="0.8"
         android:src="@drawable/arrow_down"
         app:tint="?attr/colorTertiaryContainer" />
 
