@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isNotEmpty
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -161,6 +163,10 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
             transcriptions.removeAt(position)
             recyclerView.adapter?.notifyItemRemoved(position)
             jsonManager.saveTranscriptions(transcriptions)
+            if (transcriptions.isNotEmpty()) {
+                binding.infoText.visibility = View.GONE
+                Log.i("FirstFragment", transcriptions[0].content)
+            }
         }
     }
 
@@ -176,6 +182,12 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
             tAdapter.setSelectedItems(emptyList())
             jsonManager.saveTranscriptions(transcriptions)
             tAdapter.toggleSelectionMode()
+
+            if (transcriptions.isNotEmpty()) {
+                binding.infoText.visibility = View.GONE
+            }else {
+                binding.infoText.visibility = View.VISIBLE
+            }
         } catch (e: Exception) {
             handleError(e)
         }
@@ -192,12 +204,19 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
     private fun reloadData() {
         loadTranscriptions()
         recyclerView.adapter?.notifyDataSetChanged()
+        if (transcriptions.isNotEmpty()) {
+            binding.infoText.visibility = View.GONE
+        }else {
+            binding.infoText.visibility = View.VISIBLE
+        }
+
     }
 
     private fun loadTranscriptions() {
         transcriptions.clear()
         transcriptions.addAll(jsonManager.loadTranscriptions())
         transcriptions.sortByDescending { it.timestamp }
+
     }
 
     private fun performWhisperTranscription(path: String?) {
@@ -254,9 +273,7 @@ class FirstFragment : Fragment(), TranscriptionAdapter.OnDeleteClickListener {
         return ".${mimeTypeMap.getExtensionFromMimeType(requireContext().contentResolver.getType(uri))}"
     }
 
-    private fun showLoading(isLoading: Boolean) {
-        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-    }
+
 
 
 }

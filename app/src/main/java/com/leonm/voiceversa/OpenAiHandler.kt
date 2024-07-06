@@ -145,7 +145,7 @@ class OpenAiHandler(private val context: Context) {
             repeat(MAX_RETRIES) { attempt ->
                 try {
                     val response: Response = client.newCall(request).execute()
-                    val isApiKeyValid = apiKey.length == 51 && response.isSuccessful
+                    val isApiKeyValid = response.isSuccessful
                     if (isApiKeyValid){
                         response.close()
                         return@withContext true
