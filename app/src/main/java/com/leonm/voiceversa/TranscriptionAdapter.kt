@@ -95,31 +95,42 @@ class TranscriptionAdapter(
             }
 
             checkBox.setOnClickListener {
-                toggleSelection(adapterPosition)
+                toggleSelection(absoluteAdapterPosition)
             }
 
             expandButton.setOnClickListener {
-                toggleExpanded()
+
+                toggleExpanded(transcriptions[absoluteAdapterPosition].content)
             }
 
             copyButton.setOnClickListener {
                 val clipboard = itemView.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clip = ClipData.newPlainText("text", transcriptions[adapterPosition].content)
+                val clip = ClipData.newPlainText("text", transcriptions[absoluteAdapterPosition].content)
                 clipboard.setPrimaryClip(clip)
                 Toast.makeText(itemView.context, "Copied to Clipboard.", Toast.LENGTH_SHORT).show()
             }
 
             summarizeButton.setOnClickListener {
-                val transcription = transcriptions[adapterPosition]
-                if (transcription.summarizedContent.isNotEmpty()) {
+                val transcription = transcriptions[absoluteAdapterPosition]
+                if (transcription.summarizedContent.isNotEmpty() ) {
                     textTranscriptionContent.text = transcription.summarizedContent
+
+                }
+
+                if (transcription.summarizedContent.length > 100){
+                    toggleExpanded(transcription.summarizedContent)
                 }
             }
 
             translationButton.setOnClickListener {
-                val transcription = transcriptions[adapterPosition]
+                val transcription = transcriptions[absoluteAdapterPosition]
                 if (transcription.translatedContent.isNotEmpty()) {
                     textTranscriptionContent.text = transcription.translatedContent
+
+                }
+
+                if (transcription.translatedContent.length > 100){
+                    toggleExpanded(transcription.translatedContent)
                 }
             }
         }
@@ -133,19 +144,19 @@ class TranscriptionAdapter(
             notifyDataSetChanged()
         }
 
-        private fun toggleExpanded() {
-            val transcription = transcriptions[adapterPosition]
+        private fun toggleExpanded(content: String) {
+            val transcription = transcriptions[absoluteAdapterPosition]
 
             with(textTranscriptionContent){
             val startHeight = height
             val endHeight: Int
 
             if (!transcription.expanded) {
-                text = transcription.content
+                text = content
                 maxHeight = Int.MAX_VALUE
                 measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
                 endHeight = measuredHeight + 200
-                Log.i("TAG", "measuredHeight: ${measuredHeight}")
+                Log.i("TAG", "measuredHeight: $measuredHeight")
             } else {
                 maxHeight = SPECIFIED_HEIGHT
                 endHeight = SPECIFIED_HEIGHT
@@ -185,7 +196,7 @@ class TranscriptionAdapter(
             }
 
             checkBox.visibility = if (isInSelectionMode) View.VISIBLE else View.GONE
-            checkBox.isChecked = selectedItems.contains(adapterPosition)
+            checkBox.isChecked = selectedItems.contains(absoluteAdapterPosition)
 
             expandButton.visibility = if (transcription.content.length > 100 && !isInSelectionMode) View.VISIBLE else View.GONE
 
